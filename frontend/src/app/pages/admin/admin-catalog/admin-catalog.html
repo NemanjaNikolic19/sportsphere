@@ -1,0 +1,120 @@
+<section class="card">
+  <a routerLink="/admin">Back to dashboard</a>
+
+  <h1>Sports and trainers</h1>
+
+  @if(errorMessage) {
+    <p class="message error">{{ errorMessage }}</p>
+  }
+
+  @if(successMessage) {
+    <p class="message success">{{ successMessage }}</p>
+  }
+
+  <section class="catalog-section">
+    <h2>Sports</h2>
+
+    <form class="sport-form" (ngSubmit)="createSport()">
+      <label for="sportName">New sport</label>
+
+      <input
+        id="sportName"
+        name="sportName"
+        type="text"
+        [(ngModel)]="newSportName"
+        placeholder="Enter sport name"
+      >
+
+      <button type="submit" [disabled]="creatingSport">
+        {{ creatingSport ? 'Creating...' : 'Create sport' }}
+      </button>
+    </form>
+
+    @if(loadingSports) {
+      <p>Loading sports...</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for(sport of sports; track sport.id) {
+            <tr>
+              <td>{{ sport.id }}</td>
+              <td>{{ sport.name }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="2">No sports found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  <section class="catalog-section">
+    <h2>Trainers</h2>
+
+    @if(loadingTrainers) {
+      <p>Loading trainers...</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Sport</th>
+            <th>Facility ID</th>
+            <th>Specialization</th>
+            <th>Rating</th>
+            <th>Price per hour</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for(trainer of trainers; track trainer.id) {
+            <tr>
+              <td>{{ trainer.firstName }} {{ trainer.lastName }}</td>
+              <td>{{ sportName(trainer.sportId) }}</td>
+              <td>{{ trainer.facilityId }}</td>
+              <td>{{ trainer.specialization }}</td>
+              <td>{{ trainer.averageRating }}</td>
+              <td>{{ trainer.pricePerHour }}</td>
+              <td>
+                {{ trainer.active ? 'ACTIVE' : 'INACTIVE' }}
+              </td>
+              <td>
+                <button
+                  type="button"
+                  (click)="deactivateTrainer(trainer)"
+                  [disabled]="
+                    !trainer.active ||
+                    processingTrainerId === trainer.id
+                  "
+                >
+                  @if(processingTrainerId === trainer.id) {
+                    Deactivating...
+                  } @else if(trainer.active) {
+                    Deactivate
+                  } @else {
+                    Deactivated
+                  }
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8">No trainers found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</section>

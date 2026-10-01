@@ -1,0 +1,127 @@
+<section class="card hero-card">
+  <h1>SportSphere Hub</h1>
+
+  <p>
+    Public homepage for sports facilities, reservations, training, teammate ads and equipment shop.
+  </p>
+
+  @if(auth.currentUser(); as user){
+    <p class="logged-in">
+      You are logged in as {{ user.firstName }} {{ user.lastName }} ({{ user.role }})
+    </p>
+
+    <div class="actions">
+      <a [routerLink]="auth.homeRouteForRole(user.role)">
+        Go to Dashboard
+      </a>
+    </div>
+  } @else {
+    <div class="actions">
+      <a routerLink="/login">Login as athlete / employee</a>
+    </div>
+  }
+</section>
+
+<section class="card">
+  <h2>General information</h2>
+
+  <div class="stats-grid">
+    <article class="stat-card">
+      <span class="stat-number">{{ activeFacilityCount }}</span>
+      <span class="stat-label">Active sports facilities</span>
+    </article>
+  </div>
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>Top 3 facilities</h2>
+      <p class="hint">
+        Best rated active sports facilities.
+      </p>
+    </div>
+
+    <a routerLink="/search">
+      Search all facilities
+    </a>
+  </div>
+
+  @if (topFacilities.length === 0) {
+    <p class="hint">There are no active facilities yet.</p>
+  } @else {
+    <div class="facility-grid">
+      @for (facility of topFacilities; track facility.id) {
+        <article class="facility-card">
+          <h3>{{ facility.name }}</h3>
+
+          <p>
+            City:
+            <strong>{{ facility.city }}</strong>
+          </p>
+
+          <p>
+            Address:
+            {{ facility.address }}
+          </p>
+
+          <p>
+            Price per hour:
+            <strong>{{ facility.pricePerHour }}</strong>
+          </p>
+
+          <p>
+            Rating:
+            👍 {{ facility.likeCount }} / 👎 {{ facility.dislikeCount }}
+          </p>
+
+          <a [routerLink]="['/facilities', facility.id]" class="details-link">
+            Details
+          </a>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>Current promotions</h2>
+      <p class="hint">
+        Active promotions ending soonest.
+      </p>
+    </div>
+
+    <a routerLink="/promotions">
+      View all promotions
+    </a>
+  </div>
+
+  @if (currentPromotions.length === 0) {
+    <p class="hint">There are no active promotions right now.</p>
+  } @else {
+    <div class="promotion-grid">
+      @for (promotion of currentPromotions; track promotion.id) {
+        <article class="promotion-card">
+          <h3>{{ promotion.name }}</h3>
+
+          <p>
+            Facility:
+            <strong>{{ promotionFacilityName(promotion.facilityId) }}</strong>
+          </p>
+
+          <p>
+            Discount:
+            <strong>{{ promotion.discountType }} {{ discountLabel(promotion) }}</strong>
+          </p>
+
+          <p>
+            Valid:
+            {{ promotion.validFrom }} - {{ promotion.validTo }}
+          </p>
+        </article>
+      }
+    </div>
+  }
+</section>

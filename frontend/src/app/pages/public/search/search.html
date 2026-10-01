@@ -1,0 +1,126 @@
+<section class="card">
+    <h1>Search facilities</h1>
+
+    <p class="hint">
+        Search approved sports facilities by name, city, sport and resource type.
+    </p>
+
+    @if(errorMessage) {
+        <div class="error">
+            {{ errorMessage }}
+        </div>
+    }
+
+    <form class="search-form" (ngSubmit)="search()">
+        <label>
+            Facility name
+            <input
+                type="text"
+                name="name"
+                [(ngModel)]="searchParams.name"
+                placeholder="Example: Arena"
+            />
+        </label>
+
+        <label>
+            City
+            <select name="city" [(ngModel)]="searchParams.city">
+                <option value="">All cities</option>
+
+                @for(city of cities; track city) {
+                    <option [value]="city">
+                        {{ city }}
+                    </option>
+                }
+            </select>
+        </label>
+
+        <label>
+            Sport
+            <select name="sportId" [(ngModel)]="searchParams.sportId">
+                <option [ngValue]="null">All sports</option>
+                
+                @for(sport of sports; track sport.id) {
+                    <option [ngValue]="sport.id">
+                        {{ sport.name }}
+                    </option>
+                }
+            </select>
+        </label>
+        
+        <label>
+            Resource type
+            <select name="resourceType" [(ngModel)]="searchParams.resourceType">
+                <option value="">All resource types</option>
+
+                @for(type of resourceTypes; track type.value){
+                    <option [value]="type.value">
+                        {{ type.label }}
+                    </option>
+                }
+            </select>
+        </label>
+
+        <div class="buttons">
+            <button type="submit" [disabled]="loadingSearch">
+                {{ loadingSearch ? 'Searching...' : 'Search' }}
+            </button>
+
+            <button type="button" class="secondary" (click)="clear()">
+                Clear
+            </button>
+        </div>
+    </form>
+</section>
+
+<section class="card">
+    <h2>Results</h2>
+
+    @if(!searched) {
+        <p class="hint">
+            Enter search parameters and press Search.
+        </p>
+    } @else if(loadingSearch) {
+        <p>Loading resultes...</p>
+    } @else if(facilities.length === 0) {
+        <p>No facilities found.</p>
+    } @else {
+        <table>
+            <thead>
+                <tr>
+                    <th class="sortable" (click)="sortBy('name')">
+                    Facility name {{ sortIcon('name') }}
+                    </th>
+
+                    <th class="sortable" (click)="sortBy('city')">
+                    City {{ sortIcon('city') }}
+                    </th>
+
+                    <th class="sortable" (click)="sortBy('sport')">
+                    Sport type {{ sortIcon('sport') }}
+                    </th>
+
+                    <th>Address</th>
+                    <th>Price/h</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (facility of sortedFacilities(); track facility.id) {
+                    <tr>
+                    <td>{{ facility.name }}</td>
+                    <td>{{ facility.city }}</td>
+                    <td>{{ sportNamesForFacility(facility.id) }}</td>
+                    <td>{{ facility.address }}</td>
+                    <td>{{ facility.pricePerHour }}</td>
+                    <td>
+                        <a [routerLink]="['/facilities', facility.id]" class="details-link">
+                        Details
+                        </a>
+                    </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>

@@ -1,0 +1,321 @@
+package rs.etf.pia.sportsphere.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+
+import rs.etf.pia.sportsphere.dto.FacilityReviewRequest;
+import rs.etf.pia.sportsphere.dto.FacilityReviewResponse;
+import rs.etf.pia.sportsphere.entity.AppUser;
+import rs.etf.pia.sportsphere.entity.Facility;
+import rs.etf.pia.sportsphere.entity.FacilityReview;
+import rs.etf.pia.sportsphere.repository.AppUserRepository;
+import rs.etf.pia.sportsphere.repository.FacilityRepository;
+import rs.etf.pia.sportsphere.repository.FacilityReviewRepository;
+import rs.etf.pia.sportsphere.repository.ReservationRepository;
+
+@Service
+@Transactional
+public class FacilityReviewService {
+
+    private static final String ROLE_ATHLETE = "ATHLETE";
+    private static final String USER_STATUS_ACTIVE = "ACTIVE";
+    private static final String FACILITY_STATUS_APPROVED =
+        "APPROVED";
+
+    private static final String RESERVATION_STATUS_CONFIRMED =
+        "CONFIRMED";
+
+    private static final String REACTION_LIKE = "LIKE";
+    private static final String REACTION_DISLIKE = "DISLIKE";
+
+    private final FacilityRepository facilityRepository;
+    private final FacilityReviewRepository
+        facilityReviewRepository;
+    private final ReservationRepository reservationRepository;
+    private final AppUserRepository appUserRepository;
+    private final EntityManager entityManager;
+
+    public FacilityReviewService(
+            FacilityRepository facilityRepository,
+            FacilityReviewRepository facilityReviewRepository,
+            ReservationRepository reservationRepository,
+            AppUserRepository appUserRepository,
+            EntityManager entityManager) {
+
+        this.facilityRepository = facilityRepository;
+        this.facilityReviewRepository =
+            facilityReviewRepository;
+        this.reservationRepository = reservationRepository;
+        this.appUserRepository = appUserRepository;
+        this.entityManager = entityManager;
+    }
+
+    @Transactional(readOnly = true)
+    public List<FacilityReviewResponse> getLatestReviews(
+            Long facilityId) {
+
+        getApprovedFacilityOrThrow(facilityId);
+
+        return facilityReviewRepository
+            .findTop5ByFacilityIdOrderByCreatedAtDesc(
+                facilityId
+            )
+            .stream()
+            .map(this::createResponse)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public long getRemainingReviewCount(
+            Long athleteId,
+            Long facilityId) {
+
+        getActiveAthleteOrThrow(athleteId);
+        getApprovedFacilityOrThrow(facilityId);
+
+        long confirmedReservations =
+            reservationRepository
+                .countByAthleteIdAndFacilityIdAndStatus(
+                    athleteId,
+                    facilityId,
+                    RESERVATION_STATUS_CONFIRMED
+                );
+
+        long submittedReviews =
+            facilityReviewRepository
+                .countByAthleteIdAndFacilityId(
+                    athleteId,
+                    facilityId
+                );
+
+        return Math.max(
+            confirmedReservations - submittedReviews,
+            0
+        );
+    }
+
+    public FacilityReviewResponse addReview(
+            Long athleteId,
+            Long facilityId,
+            FacilityReviewRequest request) {
+
+        AppUser athlete =
+            getActiveAthleteOrThrow(athleteId);
+
+        Facility facility =
+            getApprovedFacilityOrThrow(facilityId);
+
+        String reaction = validateReaction(request);
+        String commentText = validateComment(request);
+
+        long confirmedReservations =
+            reservationRepository
+                .countByAthleteIdAndFacilityIdAndStatus(
+                    athleteId,
+                    facilityId,
+                    RESERVATION_STATUS_CONFIRMED
+                );
+
+        if(confirmedReservations == 0) {
+            throw new IllegalArgumentException(
+                "You must have a confirmed reservation at this facility"
+            );
+        }
+
+        long submittedReviews =
+            facilityReviewRepository
+                .countByAthleteIdAndFacilityId(
+                    athleteId,
+                    facilityId
+                );
+
+        if(submittedReviews >= confirmedReservations) {
+            throw new IllegalArgumentException(
+                "You have used all reviews available for this facility"
+            );
+        }
+
+        FacilityReview review = new FacilityReview();
+
+        review.setFacilityId(facilityId);
+        review.setAthleteId(athleteId);
+        review.setReaction(reaction);
+        review.setCommentText(commentText);
+
+        FacilityReview savedReview =
+            facilityReviewRepository.saveAndFlush(review);
+
+        /*
+         * created_at is generated by MySQL, so refresh the
+         * entity before creating the response.
+         */
+        entityManager.refresh(savedReview);
+
+        synchronizeFacilityCounters(facility);
+
+        return createResponse(savedReview, athlete);
+    }
+
+    private Facility getApprovedFacilityOrThrow(
+            Long facilityId) {
+
+        return facilityRepository
+            .findByIdAndStatus(
+                facilityId,
+                FACILITY_STATUS_APPROVED
+            )
+            .orElseThrow(() ->
+                new IllegalArgumentException(
+                    "Approved facility not found"
+                )
+            );
+    }
+
+    private AppUser getActiveAthleteOrThrow(
+            Long athleteId) {
+
+        AppUser athlete = appUserRepository
+            .findById(athleteId)
+            .orElseThrow(() ->
+                new IllegalArgumentException(
+                    "Athlete not found"
+                )
+            );
+
+        if(!ROLE_ATHLETE.equalsIgnoreCase(
+                athlete.getRole())) {
+
+            throw new IllegalArgumentException(
+                "User is not an athlete"
+            );
+        }
+
+        if(!USER_STATUS_ACTIVE.equalsIgnoreCase(
+                athlete.getStatus())) {
+
+            throw new IllegalArgumentException(
+                "Athlete account is not active"
+            );
+        }
+
+        return athlete;
+    }
+
+    private String validateReaction(
+            FacilityReviewRequest request) {
+
+        if(request == null ||
+           request.getReaction() == null) {
+
+            throw new IllegalArgumentException(
+                "Reaction is required"
+            );
+        }
+
+        String reaction =
+            request.getReaction().trim().toUpperCase();
+
+        if(!REACTION_LIKE.equals(reaction) &&
+           !REACTION_DISLIKE.equals(reaction)) {
+
+            throw new IllegalArgumentException(
+                "Reaction must be LIKE or DISLIKE"
+            );
+        }
+
+        return reaction;
+    }
+
+    private String validateComment(
+            FacilityReviewRequest request) {
+
+        if(request == null ||
+           request.getCommentText() == null) {
+
+            throw new IllegalArgumentException(
+                "Comment is required"
+            );
+        }
+
+        String commentText =
+            request.getCommentText().trim();
+
+        if(commentText.isEmpty()) {
+            throw new IllegalArgumentException(
+                "Comment cannot be empty"
+            );
+        }
+
+        if(commentText.length() > 1000) {
+            throw new IllegalArgumentException(
+                "Comment can contain at most 1000 characters"
+            );
+        }
+
+        return commentText;
+    }
+
+    private void synchronizeFacilityCounters(
+            Facility facility) {
+
+        long likeCount =
+            facilityReviewRepository
+                .countByFacilityIdAndReaction(
+                    facility.getId(),
+                    REACTION_LIKE
+                );
+
+        long dislikeCount =
+            facilityReviewRepository
+                .countByFacilityIdAndReaction(
+                    facility.getId(),
+                    REACTION_DISLIKE
+                );
+
+        facility.setLikeCount(
+            Math.toIntExact(likeCount)
+        );
+
+        facility.setDislikeCount(
+            Math.toIntExact(dislikeCount)
+        );
+
+        facilityRepository.save(facility);
+    }
+
+    private FacilityReviewResponse createResponse(
+            FacilityReview review) {
+
+        AppUser athlete = appUserRepository
+            .findById(review.getAthleteId())
+            .orElseThrow(() ->
+                new IllegalArgumentException(
+                    "Review author not found"
+                )
+            );
+
+        return createResponse(review, athlete);
+    }
+
+    private FacilityReviewResponse createResponse(
+            FacilityReview review,
+            AppUser athlete) {
+
+        return new FacilityReviewResponse(
+            review.getId(),
+            review.getFacilityId(),
+            review.getAthleteId(),
+            athlete.getUsername(),
+            athlete.getFirstName(),
+            athlete.getLastName(),
+            athlete.getProfileImagePath(),
+            review.getReaction(),
+            review.getCommentText(),
+            review.getCreatedAt()
+        );
+    }
+}

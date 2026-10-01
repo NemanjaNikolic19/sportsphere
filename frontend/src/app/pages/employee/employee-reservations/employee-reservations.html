@@ -1,0 +1,405 @@
+<a routerLink="/employee" class="back-link">
+  ← Back to employee dashboard
+</a>
+
+<section class="card">
+  <h1>Reservations and individual trainings</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <div class="title-row">
+    <div>
+      <h2>Reservation management</h2>
+      <p class="hint">
+        Confirm attendance or mark the athlete as a no-show during the first
+        ten minutes of the appointment.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary"
+      (click)="loadReservations()"
+      [disabled]="loadingReservations"
+    >
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingReservations) {
+    <p>Loading reservations...</p>
+  } @else if (reservations.length === 0) {
+    <p class="hint">There are no reservations for your facilities.</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Facility</th>
+            <th>Terrain / hall</th>
+            <th>Sport</th>
+            <th>Athlete</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (reservation of reservations; track reservation.id) {
+            <tr>
+              <td>#{{ reservation.id }}</td>
+              <td>{{ facilityName(reservation.facilityId) }}</td>
+              <td>{{ resourceName(reservation.resourceId) }}</td>
+              <td>{{ sportName(reservation.sportId) }}</td>
+              <td>#{{ reservation.athleteId }}</td>
+              <td>{{ formatDateTime(reservation.startTime) }}</td>
+              <td>{{ formatDateTime(reservation.endTime) }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.requested]="reservation.status === 'REQUESTED'"
+                  [class.confirmed]="reservation.status === 'CONFIRMED'"
+                  [class.cancelled]="reservation.status === 'CANCELLED'"
+                  [class.no-show]="reservation.status === 'NO_SHOW'"
+                >
+                  {{ reservation.status }}
+                </span>
+              </td>
+              <td class="actions">
+                <button
+                  type="button"
+                  class="confirm"
+                  (click)="confirmReservation(reservation)"
+                  [disabled]="
+                    !canProcessReservation(reservation) ||
+                    processingEventKey === 'RESERVATION-' + reservation.id
+                  "
+                >
+                  Confirm
+                </button>
+
+                <button
+                  type="button"
+                  class="no-show-button"
+                  (click)="noShowReservation(reservation)"
+                  [disabled]="
+                    !canProcessReservation(reservation) ||
+                    processingEventKey === 'RESERVATION-' + reservation.id
+                  "
+                >
+                  No-show
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="title-row subsection">
+    <div>
+      <h2>Training management</h2>
+      <p class="hint">
+        The same attendance rule applies to scheduled individual trainings.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary"
+      (click)="loadTrainingSessions()"
+      [disabled]="loadingTrainingSessions"
+    >
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingTrainingSessions) {
+    <p>Loading trainings...</p>
+  } @else if (trainingSessions.length === 0) {
+    <p class="hint">There are no trainings for your facilities.</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Facility</th>
+            <th>Terrain / hall</th>
+            <th>Sport</th>
+            <th>Trainer</th>
+            <th>Athlete</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (session of trainingSessions; track session.id) {
+            <tr>
+              <td>#{{ session.id }}</td>
+              <td>{{ facilityName(session.facilityId) }}</td>
+              <td>{{ resourceName(session.resourceId) }}</td>
+              <td>{{ sportName(session.sportId) }}</td>
+              <td>#{{ session.trainerId }}</td>
+              <td>#{{ session.athleteId }}</td>
+              <td>{{ formatDateTime(session.startTime) }}</td>
+              <td>{{ formatDateTime(session.endTime) }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.scheduled]="session.status === 'SCHEDULED'"
+                  [class.held]="session.status === 'HELD'"
+                  [class.cancelled]="session.status === 'CANCELLED'"
+                  [class.no-show]="session.status === 'NO_SHOW'"
+                >
+                  {{ session.status }}
+                </span>
+              </td>
+              <td class="actions">
+                <button
+                  type="button"
+                  class="confirm"
+                  (click)="confirmTrainingSession(session)"
+                  [disabled]="
+                    !canProcessTraining(session) ||
+                    processingEventKey === 'TRAINING-' + session.id
+                  "
+                >
+                  Confirm
+                </button>
+
+                <button
+                  type="button"
+                  class="no-show-button"
+                  (click)="noShowTrainingSession(session)"
+                  [disabled]="
+                    !canProcessTraining(session) ||
+                    processingEventKey === 'TRAINING-' + session.id
+                  "
+                >
+                  No-show
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>Interactive weekly calendar</h2>
+      <p class="hint">
+        Reservations are green and individual trainings are blue. Select one
+        terrain or hall to see all occupied intervals.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary"
+      (click)="loadCalendar()"
+      [disabled]="loadingCalendar"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <div class="calendar-filters">
+    <label>
+      Facility
+
+      <select
+        [(ngModel)]="selectedCalendarFacilityId"
+        (ngModelChange)="onCalendarFacilityChange()"
+      >
+        <option [ngValue]="null">Select facility</option>
+
+        @for (facility of facilities; track facility.id) {
+          <option [ngValue]="facility.id">
+            {{ facility.name }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Terrain / hall
+
+      <select
+        [(ngModel)]="selectedCalendarResourceId"
+        [disabled]="loadingCalendarResources"
+      >
+        <option [ngValue]="null">Select resource</option>
+
+        @for (resource of calendarResources; track resource.id) {
+          <option [ngValue]="resource.id">
+            {{ resource.name }} - {{ resource.type }}
+          </option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (loadingCalendarResources || loadingCalendar) {
+    <p>Loading calendar...</p>
+  } @else if (
+    selectedCalendarFacilityId !== null &&
+    calendarResources.length === 0
+  ) {
+    <p class="hint">This facility has no active terrains or halls.</p>
+  } @else if (selectedCalendarResourceId !== null) {
+    <div class="selected-resource">
+      <div>
+        <strong>{{ selectedCalendarResource()?.name }}</strong>
+        <span>{{ selectedCalendarResource()?.type }}</span>
+      </div>
+
+      @if (
+        selectedCalendarResource()?.type === 'HALL' ||
+        selectedCalendarResource()?.type === 'INDOOR_COURT'
+      ) {
+        <p>
+          Drag a future requested reservation or scheduled training onto a free
+          full-hour slot.
+        </p>
+      } @else {
+        <p>
+          Outdoor resources are visible but read-only. Drag-and-drop is enabled
+          for halls and indoor courts.
+        </p>
+      }
+    </div>
+
+    <div class="calendar-legend">
+      <span><i class="legend-box reservation-legend"></i> Reservation</span>
+      <span><i class="legend-box training-legend"></i> Training</span>
+      <span><i class="legend-box free-legend"></i> Free</span>
+    </div>
+
+    <div class="week-navigation">
+      <button type="button" class="secondary" (click)="changeWeek(-1)">
+        ← Previous
+      </button>
+
+      <button type="button" class="secondary" (click)="goToCurrentWeek()">
+        Today
+      </button>
+
+      <strong>{{ calendarRangeLabel() }}</strong>
+
+      <button type="button" class="secondary" (click)="changeWeek(1)">
+        Next →
+      </button>
+    </div>
+
+    <div class="calendar-scroll">
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            <th class="time-cell">Time</th>
+
+            @for (day of calendarDays; track dateKey(day)) {
+              <th>{{ dayLabel(day) }}</th>
+            }
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (hour of calendarHours; track hour) {
+            <tr>
+              <th class="time-cell">
+                {{ hourLabel(hour) }}
+              </th>
+
+              @for (day of calendarDays; track dateKey(day)) {
+                <td
+                  class="calendar-cell"
+                  [class.past-cell]="isSlotPast(day, hour)"
+                  [class.drop-target]="
+                    dragOverSlotKey === slotKey(day, hour)
+                  "
+                  [class.invalid-target]="
+                    draggingEventKey !== '' && !canDropAt(day, hour)
+                  "
+                  (dragover)="onSlotDragOver($event, day, hour)"
+                  (dragleave)="onSlotDragLeave(day, hour)"
+                  (drop)="onSlotDrop($event, day, hour)"
+                >
+                  @if (eventStartingInSlot(day, hour); as event) {
+                    <div
+                      class="calendar-event"
+                      [class.reservation-event]="
+                        event.eventType === 'RESERVATION'
+                      "
+                      [class.training-event]="
+                        event.eventType === 'TRAINING'
+                      "
+                      [class.draggable-event]="canDrag(event)"
+                      [class.moving-event]="
+                        movingEventKey === eventKey(event)
+                      "
+                      [draggable]="canDrag(event)"
+                      (dragstart)="onEventDragStart($event, event)"
+                      (dragend)="onEventDragEnd()"
+                    >
+                      <strong>{{ eventTypeLabel(event) }}</strong>
+
+                      <span>{{ sportName(event.sportId) }}</span>
+
+                      <span>
+                        {{ formatTime(event.startTime) }} -
+                        {{ formatTime(event.endTime) }}
+                      </span>
+
+                      <span>Athlete #{{ event.athleteId }}</span>
+
+                      @if (event.eventType === 'TRAINING') {
+                        <span>Trainer #{{ event.trainerId }}</span>
+                      }
+
+                      <span class="event-status">
+                        {{ event.status }}
+                      </span>
+                    </div>
+                  } @else if (eventCoveringSlot(day, hour)) {
+                    <div class="continuation-slot">
+                      Occupied
+                    </div>
+                  } @else {
+                    <div
+                      class="empty-slot"
+                      [class.past]="isSlotPast(day, hour)"
+                    >
+                      {{ isSlotPast(day, hour) ? 'Past' : 'Free' }}
+                    </div>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

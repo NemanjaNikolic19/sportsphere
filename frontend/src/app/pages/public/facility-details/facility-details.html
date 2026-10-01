@@ -1,0 +1,303 @@
+<a routerLink="/search" class="back-link">
+    ← Back to search screen
+</a>
+
+@if(loading) {
+    <section class="card">
+        <p>Loading facility detals..</p>
+    </section>
+}
+
+@if(errorMessage){
+    <section class="error">
+        {{ errorMessage }}
+    </section>
+}
+
+@if(facility; as f) {
+    <section class="card">
+        <div class="title-row">
+            <div>
+                <h1>{{ f.name }}</h1>
+                <p class="muted"> {{ f.city}}, {{f.address}}</p>
+            </div>
+
+            <div class="status">
+            {{ f.status }}
+        </div>
+        </div>
+
+        <p class="description">
+            {{ f.description }}
+        </p>
+
+        <div class="stats">
+            <div>
+                <strong>Price per hour</strong>
+                <span> {{ f.pricePerHour }}</span>
+            </div>
+
+            <div>
+                <strong>Working time</strong>
+                <span> {{ f.workingTimeFrom }} - {{ f.workingTimeTo }}</span>
+            </div>
+
+            <div>
+                <strong>Likes</strong>
+                <span> {{ f.likeCount }}</span>
+            </div>
+
+            <div>
+                <strong>Dislikes</strong>
+                <span> {{ f.dislikeCount }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Resources</h2>
+
+        @if(resources.length === 0){
+            <p class="muted">No resources found for this facility.</p>
+        } @else {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Capacity</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for(resource of resources; track resource.id) {
+                        <tr>
+                            <td>{{ resource.name }}</td>
+                            <td>{{ resourceTypeLabel(resource.type) }}</td>
+                            <td>{{ resource.capacity }}</td>
+                            <td>{{ resource.equipmentDescription }}</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+
+    <section class="card">
+        <h2>Gallery</h2>
+
+        @if(images.length === 0) {
+            <p class="muted">No images found for this facility.</p>
+        } @else {
+            <div class="gallery">
+                @for(image of images; track image.id) {
+                    <div class="image-card">
+                        <img 
+                            [src]="imageSource(image.imagePath)"
+                            [alt]="f.name"
+                        />
+
+                        <p>{{ image.imagePath }}</p>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="card">
+        <h2>Reviews</h2>
+
+        @if(interactionError) {
+            <div class="error">
+                {{ interactionError }}
+            </div>
+        }
+
+        @if(interactionMessage) {
+            <div class="success">
+                {{ interactionMessage }}
+            </div>
+        }
+
+        @if(isLoggedAthlete()) {
+            @if(loadingReviewQuota) {
+                <p class="muted">
+                    Loading your review quota...
+                </p>
+            } @else {
+                <p class="review-quota">
+                    Remaining reviews:
+                    <strong>{{ remainingReviews }}</strong>
+                </p>
+
+                @if(remainingReviews > 0) {
+                    <div class="comment-form">
+                        <h3>Publish a review</h3>
+
+                        <div class="reaction-actions">
+                            <button
+                                type="button"
+                                class="reaction-button like-button"
+                                [class.selected-reaction]="
+                                    selectedReaction === 'LIKE'
+                                "
+                                [disabled]="submittingReview"
+                                (click)="selectReaction('LIKE')"
+                            >
+                                👍 Like
+                            </button>
+
+                            <button
+                                type="button"
+                                class="reaction-button dislike-button"
+                                [class.selected-reaction]="
+                                    selectedReaction === 'DISLIKE'
+                                "
+                                [disabled]="submittingReview"
+                                (click)="selectReaction('DISLIKE')"
+                            >
+                                👎 Dislike
+                            </button>
+                        </div>
+
+                        <textarea
+                            [(ngModel)]="reviewCommentText"
+                            maxlength="1000"
+                            rows="4"
+                            placeholder="Describe your experience..."
+                        ></textarea>
+
+                        <div class="comment-form-footer">
+                            <span class="muted">
+                                {{ reviewCommentText.length }}/1000
+                            </span>
+
+                            <button
+                                type="button"
+                                [disabled]="!canSubmitReview()"
+                                (click)="submitReview()"
+                            >
+                                @if(submittingReview) {
+                                    Publishing...
+                                } @else {
+                                    Publish review
+                                }
+                            </button>
+                        </div>
+                    </div>
+                } @else {
+                    <p class="muted">
+                        You have used all reviews available for this
+                        facility.
+                    </p>
+                }
+            }
+        } @else {
+            <p class="muted">
+                Log in as an active athlete to publish a review.
+            </p>
+        }
+
+        <hr class="review-divider" />
+
+        <h3>Latest reviews</h3>
+
+        @if(loadingReviews) {
+            <p class="muted">Loading reviews...</p>
+        } @else if(reviews.length === 0) {
+            <p class="muted">
+                There are no reviews for this facility yet.
+            </p>
+        } @else {
+            <div class="comments-list">
+                @for(review of reviews; track review.id) {
+                    <article
+                        class="comment"
+                        [class.own-review]="isOwnReview(review)"
+                    >
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                @if(
+                                    review.athleteProfileImagePath;
+                                    as profileImagePath
+                                ) {
+                                    <img
+                                        class="comment-avatar"
+                                        [src]="imageSource(profileImagePath)"
+                                        [alt]="reviewAuthor(review)"
+                                    />
+                                }
+
+                                <div>
+                                    <strong>
+                                        {{ reviewAuthor(review) }}
+                                    </strong>
+
+                                    <span class="comment-username">
+                                        &#64;{{ review.athleteUsername }}
+                                    </span>
+
+                                    @if(isOwnReview(review)) {
+                                        <span class="own-review-label">
+                                            Your review
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="review-meta">
+                                <span
+                                    class="review-reaction"
+                                    [class.like-reaction]="
+                                        review.reaction === 'LIKE'
+                                    "
+                                    [class.dislike-reaction]="
+                                        review.reaction === 'DISLIKE'
+                                    "
+                                >
+                                    @if(review.reaction === 'LIKE') {
+                                        👍 Like
+                                    } @else {
+                                        👎 Dislike
+                                    }
+                                </span>
+
+                                <span class="comment-date">
+                                    {{
+                                        formatCommentDate(
+                                            review.createdAt
+                                        )
+                                    }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <p class="comment-text">
+                            {{ review.commentText }}
+                        </p>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="card">
+        <h2>Location</h2>
+
+        <p class="muted">
+            {{ f.address }}, {{ f.city }}
+        </p>
+
+        @if(mapUrl) {
+            <iframe
+                class="map-frame"
+                [src]="mapUrl"
+                [title]="'Location of ' + f.name"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+        }
+    </section>
+}

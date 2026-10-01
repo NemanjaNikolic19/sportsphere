@@ -1,0 +1,120 @@
+<a routerLink="/employee" class="back-link">
+  ← Back to employee dashboard
+</a>
+
+<section class="card">
+  <h1>Employee profile</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  @if (loading) {
+    <p>Loading profile...</p>
+  } @else if (profile) {
+    <div class="profile-summary">
+      <img
+        class="profile-image"
+        [src]="profileImageUrl()"
+        [alt]="profile.firstName + ' ' + profile.lastName"
+      />
+
+      <div>
+        <h2>
+          {{ profile.firstName }}
+          {{ profile.lastName }}
+        </h2>
+
+        <p>
+          &#64;{{ profile.username }}
+        </p>
+
+        <a
+          routerLink="/profile/change-picture"
+          class="change-picture-link"
+        >
+          Change picture
+        </a>
+      </div>
+    </div>
+
+    <form class="profile-form" (ngSubmit)="saveProfile()">
+      <div class="grid">
+        <label>
+          Username
+          <input
+            type="text"
+            [value]="profile.username"
+            disabled
+          />
+        </label>
+
+        <label>
+          Role
+          <input
+            type="text"
+            [value]="profile.role"
+            disabled
+          />
+        </label>
+
+        <label>
+          Status
+          <input
+            type="text"
+            [value]="profile.status"
+            disabled
+          />
+        </label>
+
+        <label>
+          First name
+          <input
+            type="text"
+            name="firstName"
+            [(ngModel)]="editProfile.firstName"
+          />
+        </label>
+
+        <label>
+          Last name
+          <input
+            type="text"
+            name="lastName"
+            [(ngModel)]="editProfile.lastName"
+          />
+        </label>
+
+        <label>
+          Phone
+          <input
+            type="text"
+            name="phone"
+            [(ngModel)]="editProfile.phone"
+          />
+        </label>
+
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="editProfile.email"
+          />
+        </label>
+      </div>
+
+      <button type="submit" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save profile' }}
+      </button>
+    </form>
+  }
+</section>

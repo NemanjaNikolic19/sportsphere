@@ -1,0 +1,216 @@
+<a routerLink="/athlete" class="back-link">
+  ← Back to athlete dashboard
+</a>
+
+<section class="card">
+  <h1>Equipment shop</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <div class="filter-form">
+    <label>
+      Sport
+      <select name="sportFilter" [(ngModel)]="sportFilterId">
+        <option [ngValue]="null">All sports</option>
+
+        @for (sport of sports; track sport.id) {
+          <option [ngValue]="sport.id">
+            {{ sport.name }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <div class="button-row">
+      <button type="button" (click)="loadEquipment()" [disabled]="loadingEquipment">
+        {{ loadingEquipment ? 'Searching...' : 'Search equipment' }}
+      </button>
+
+      <button type="button" class="secondary" (click)="clearFilter()">
+        Clear
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Available equipment</h2>
+
+  @if (loadingEquipment) {
+    <p>Loading equipment...</p>
+  } @else if (equipmentList.length === 0) {
+    <p class="hint">No equipment found.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Facility</th>
+          <th>Sport</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Quantity</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (equipment of equipmentList; track equipment.id) {
+          <tr>
+            <td>
+              <img
+                class="equipment-image"
+                [src]="imageSource(equipment.imagePath)"
+                [alt]="equipment.name"
+              />
+            </td>
+            <td>{{ equipment.name }}</td>
+            <td>{{ facilityName(equipment.facilityId) }}</td>
+            <td>{{ sportName(equipment.sportId) }}</td>
+            <td>{{ equipment.price }}</td>
+            <td>{{ equipment.stock }}</td>
+            <td>
+              <input
+                class="quantity-input"
+                type="number"
+                min="0"
+                [max]="equipment.stock"
+                [value]="quantityFor(equipment.id)"
+                (input)="onQuantityChange(equipment, $event)"
+                [disabled]="equipment.stock === 0"
+              />
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card">
+  <h2>Cart</h2>
+
+  @if (cartItems().length === 0) {
+    <p class="hint">Cart is empty.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Equipment</th>
+          <th>Facility</th>
+          <th>Quantity</th>
+          <th>Unit price</th>
+          <th>Line total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (item of cartItems(); track item.equipment.id) {
+          <tr>
+            <td>{{ item.equipment.name }}</td>
+            <td>{{ facilityName(item.equipment.facilityId) }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.equipment.price }}</td>
+            <td>{{ item.equipment.price * item.quantity }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <p class="total">
+      Total: {{ cartTotal() }}
+    </p>
+
+    @if (cartFacilityIds().length > 1) {
+      <div class="warning">
+        All equipment in one order must belong to the same facility.
+      </div>
+    }
+
+    <button
+      type="button"
+      class="order-button"
+      [class.ready]="canCreateOrder()"
+      [disabled]="creatingOrder || !canCreateOrder()"
+      (click)="createOrder()"
+    >
+      {{ creatingOrder ? 'Creating order...' : 'Create order' }}
+    </button>
+  }
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My orders</h2>
+      <p class="hint">
+        You can cancel orders while they are ORDERED or ACCEPTED.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadOrders()" [disabled]="loadingOrders">
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingOrders) {
+    <p>Loading orders...</p>
+  } @else if (orders.length === 0) {
+    <p class="hint">You have no equipment orders.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Facility</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Created</th>
+          <th>Cancel</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (order of orders; track order.id) {
+          <tr>
+            <td>#{{ order.id }}</td>
+            <td>{{ facilityName(order.facilityId) }}</td>
+            <td>
+              <span
+                class="status"
+                [class.ordered]="order.status === 'ORDERED'"
+                [class.accepted]="order.status === 'ACCEPTED'"
+                [class.picked]="order.status === 'PICKED_UP'"
+                [class.cancelled]="order.status === 'CANCELLED'"
+              >
+                {{ order.status }}
+              </span>
+            </td>
+            <td>{{ order.totalPrice }}</td>
+            <td>{{ formatDateTime(order.createdAt) }}</td>
+            <td>
+              <button
+                type="button"
+                class="cancel"
+                (click)="cancelOrder(order)"
+                [disabled]="!canCancelOrder(order) || cancellingOrderId === order.id"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

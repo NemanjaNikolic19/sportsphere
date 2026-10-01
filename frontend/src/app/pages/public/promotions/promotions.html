@@ -1,0 +1,98 @@
+<a routerLink="/" class="back-link">
+  ← Back to home
+</a>
+
+<section class="card">
+  <h1>Promotions</h1>
+
+  <p class="hint">
+    Browse currently active and upcoming promotions.
+  </p>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+</section>
+
+<section class="card">
+  <h2>Active promotions</h2>
+
+  @if (loadingActive) {
+    <p>Loading active promotions...</p>
+  } @else if (activePromotions.length === 0) {
+    <p class="hint">There are no active promotions right now.</p>
+  } @else {
+    <div class="promotion-grid">
+      @for (promotion of activePromotions; track promotion.id) {
+        <article class="promotion-card">
+          <h3>{{ promotion.name }}</h3>
+
+          <p>
+            Facility:
+            <strong>{{ facilityName(promotion.facilityId) }}</strong>
+          </p>
+
+          <p>
+            Sport:
+            <strong>{{ sportName(promotion.sportId) }}</strong>
+          </p>
+
+          <p>
+            Discount:
+            <strong>{{ promotion.discountType }} {{ discountLabel(promotion) }}</strong>
+          </p>
+
+          <p>
+            Valid:
+            {{ promotion.validFrom }} - {{ promotion.validTo }}
+          </p>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+<section class="card">
+  <h2>Upcoming promotions</h2>
+
+  @if (loadingUpcoming) {
+    <p>Loading upcoming promotions...</p>
+  } @else if (upcomingPromotions.length === 0) {
+    <p class="hint">There are no upcoming promotions.</p>
+  } @else {
+    <div class="promotion-grid">
+      @for (promotion of upcomingPromotions; track promotion.id) {
+        <article class="promotion-card upcoming">
+          <h3>{{ promotion.name }}</h3>
+
+          <p>
+            Facility:
+            <strong>{{ facilityName(promotion.facilityId) }}</strong>
+          </p>
+
+          <p>
+            Sport:
+            <strong>{{ sportName(promotion.sportId) }}</strong>
+          </p>
+
+          <p>
+            Discount:
+            <strong>{{ promotion.discountType }} {{ discountLabel(promotion) }}</strong>
+          </p>
+
+          <p>
+            Starts:
+            {{ promotion.validFrom }}
+          </p>
+
+          <p>
+            Ends:
+            {{ promotion.validTo }}
+          </p>
+        </article>
+      }
+    </div>
+  }
+</section>

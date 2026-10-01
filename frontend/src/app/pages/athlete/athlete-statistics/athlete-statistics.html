@@ -1,0 +1,129 @@
+<a routerLink="/athlete" class="back-link">
+  ← Back to athlete dashboard
+</a>
+
+<section class="card">
+  <div class="page-header">
+    <div>
+      <h1>Athlete statistics</h1>
+
+      <p class="hint">
+        Review your reservation activity and compare equipment
+        spending across all athletes.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary"
+      [disabled]="loading"
+      (click)="loadStatistics()"
+    >
+      {{ loading ? 'Loading...' : 'Refresh' }}
+    </button>
+  </div>
+
+  @if (loading) {
+    <div class="loading-message">
+      Loading statistics...
+    </div>
+  }
+
+  @if (error) {
+    <div class="error">
+      {{ error }}
+    </div>
+  }
+</section>
+
+<section
+  class="total-card"
+  [hidden]="statistics === null || loading"
+>
+  <div>
+    <span class="total-label">
+      Total equipment spending
+    </span>
+
+    <p class="total-description">
+      Sum of all picked-up equipment orders made by active
+      athletes.
+    </p>
+  </div>
+
+  @if (statistics; as data) {
+    <strong class="total-value">
+      {{
+        formatMoney(
+          data.totalEquipmentSpendingAllAthletes
+        )
+      }}
+    </strong>
+  }
+</section>
+
+<div
+  class="charts-grid"
+  [hidden]="statistics === null || loading"
+>
+  <section class="card chart-card">
+    <div class="chart-heading">
+      <h2>Terms by sport</h2>
+
+      <p class="hint">
+        Played terms are completed confirmed reservations.
+        Reserved terms are upcoming requested or confirmed
+        reservations.
+      </p>
+    </div>
+
+    <div class="chart-container">
+      <canvas
+        #sportChart
+        role="img"
+        aria-label="Played and reserved terms grouped by sport"
+      >
+      </canvas>
+    </div>
+  </section>
+
+  <section class="card chart-card">
+    <div class="chart-heading">
+      <h2>Monthly activity</h2>
+
+      <p class="hint">
+        Your valid reservations during the current month and
+        the preceding eleven months.
+      </p>
+    </div>
+
+    <div class="chart-container">
+      <canvas
+        #monthlyChart
+        role="img"
+        aria-label="Reservation activity during the last twelve months"
+      >
+      </canvas>
+    </div>
+  </section>
+
+  <section class="card chart-card spending-card">
+    <div class="chart-heading">
+      <h2>Equipment spending by athlete</h2>
+
+      <p class="hint">
+        Comparison of completed equipment purchases for every
+        active athlete.
+      </p>
+    </div>
+
+    <div class="chart-container spending-chart-container">
+      <canvas
+        #spendingChart
+        role="img"
+        aria-label="Equipment spending grouped by athlete"
+      >
+      </canvas>
+    </div>
+  </section>
+</div>

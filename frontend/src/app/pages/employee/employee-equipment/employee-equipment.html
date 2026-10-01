@@ -1,0 +1,359 @@
+<a routerLink="/employee" class="back-link">
+  ← Back to employee dashboard
+</a>
+
+<section class="card">
+  <h1>Employee equipment</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <h2>Create equipment</h2>
+
+  <form class="equipment-form" (ngSubmit)="createEquipment()">
+    <div class="grid">
+      <label>
+        Facility
+        <select name="createFacilityId" [(ngModel)]="createForm.facilityId">
+          <option [ngValue]="null">Choose facility</option>
+
+          @for (facility of facilities; track facility.id) {
+            <option [ngValue]="facility.id">
+              {{ facility.name }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Sport
+        <select name="createSportId" [(ngModel)]="createForm.sportId">
+          <option [ngValue]="null">Choose sport</option>
+
+          @for (sport of sports; track sport.id) {
+            <option [ngValue]="sport.id">
+              {{ sport.name }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Name
+        <input
+          type="text"
+          name="createName"
+          [(ngModel)]="createForm.name"
+        />
+      </label>
+
+      <label>
+        Image path
+        <input
+          type="text"
+          name="createImagePath"
+          [(ngModel)]="createForm.imagePath"
+        />
+      </label>
+
+      <label>
+        Price
+        <input
+          type="number"
+          name="createPrice"
+          min="0"
+          [(ngModel)]="createForm.price"
+        />
+      </label>
+
+      <label>
+        Stock
+        <input
+          type="number"
+          name="createStock"
+          min="0"
+          [(ngModel)]="createForm.stock"
+        />
+      </label>
+
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          name="createActive"
+          [(ngModel)]="createForm.active"
+        />
+        Active
+      </label>
+    </div>
+
+    <button
+      type="submit"
+      class="create-button"
+      [class.ready]="isCreateFormValid()"
+      [disabled]="creating || !isCreateFormValid()"
+    >
+      {{ creating ? 'Creating...' : 'Create equipment' }}
+    </button>
+  </form>
+</section>
+
+@if (editing) {
+  <section class="card edit-card">
+    <h2>Edit equipment</h2>
+
+    <form class="equipment-form" (ngSubmit)="saveEdit()">
+      <div class="grid">
+        <label>
+          Facility
+          <select name="editFacilityId" [(ngModel)]="editForm.facilityId">
+            <option [ngValue]="null">Choose facility</option>
+
+            @for (facility of facilities; track facility.id) {
+              <option [ngValue]="facility.id">
+                {{ facility.name }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Sport
+          <select name="editSportId" [(ngModel)]="editForm.sportId">
+            <option [ngValue]="null">Choose sport</option>
+
+            @for (sport of sports; track sport.id) {
+              <option [ngValue]="sport.id">
+                {{ sport.name }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Name
+          <input
+            type="text"
+            name="editName"
+            [(ngModel)]="editForm.name"
+          />
+        </label>
+
+        <label>
+          Image path
+          <input
+            type="text"
+            name="editImagePath"
+            [(ngModel)]="editForm.imagePath"
+          />
+        </label>
+
+        <label>
+          Price
+          <input
+            type="number"
+            name="editPrice"
+            min="0"
+            [(ngModel)]="editForm.price"
+          />
+        </label>
+
+        <label>
+          Stock
+          <input
+            type="number"
+            name="editStock"
+            min="0"
+            [(ngModel)]="editForm.stock"
+          />
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="editActive"
+            [(ngModel)]="editForm.active"
+          />
+          Active
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button
+          type="submit"
+          class="save"
+          [disabled]="saving || !isEditFormValid()"
+        >
+          {{ saving ? 'Saving...' : 'Save changes' }}
+        </button>
+
+        <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="saving">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My equipment</h2>
+      <p class="hint">
+        Equipment belonging to facilities managed by you.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadEquipment()" [disabled]="loadingEquipment">
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingEquipment) {
+    <p>Loading equipment...</p>
+  } @else if (equipmentList.length === 0) {
+    <p class="hint">You have no equipment.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Facility</th>
+          <th>Sport</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Active</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (equipment of equipmentList; track equipment.id) {
+          <tr>
+            <td>
+              <img
+                class="equipment-image"
+                [src]="imageSource(equipment.imagePath)"
+                [alt]="equipment.name"
+              />
+            </td>
+            <td>{{ equipment.name }}</td>
+            <td>{{ facilityName(equipment.facilityId) }}</td>
+            <td>{{ sportName(equipment.sportId) }}</td>
+            <td>{{ equipment.price }}</td>
+            <td>{{ equipment.stock }}</td>
+            <td>
+              <span
+                class="active-badge"
+                [class.active]="equipment.active"
+                [class.inactive]="!equipment.active"
+              >
+                {{ equipment.active ? 'YES' : 'NO' }}
+              </span>
+            </td>
+            <td>
+              <button type="button" class="edit" (click)="startEdit(equipment)">
+                Edit
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>Equipment orders</h2>
+      <p class="hint">
+        Accept orders, mark them as picked up, or cancel them.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadOrders()" [disabled]="loadingOrders">
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingOrders) {
+    <p>Loading orders...</p>
+  } @else if (orders.length === 0) {
+    <p class="hint">There are no equipment orders for your facilities.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Athlete</th>
+          <th>Facility</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (order of orders; track order.id) {
+          <tr>
+            <td>#{{ order.id }}</td>
+            <td>#{{ order.athleteId }}</td>
+            <td>{{ facilityName(order.facilityId) }}</td>
+            <td>
+              <span
+                class="status"
+                [class.ordered]="order.status === 'ORDERED'"
+                [class.accepted]="order.status === 'ACCEPTED'"
+                [class.picked]="order.status === 'PICKED_UP'"
+                [class.cancelled]="order.status === 'CANCELLED'"
+              >
+                {{ order.status }}
+              </span>
+            </td>
+            <td>{{ order.totalPrice }}</td>
+            <td>{{ formatDateTime(order.createdAt) }}</td>
+            <td class="actions">
+              <button
+                type="button"
+                class="accept"
+                (click)="acceptOrder(order)"
+                [disabled]="!canAccept(order) || processingOrderId === order.id"
+              >
+                Accept
+              </button>
+
+              <button
+                type="button"
+                class="picked"
+                (click)="markPickedUp(order)"
+                [disabled]="!canMarkPickedUp(order) || processingOrderId === order.id"
+              >
+                Picked up
+              </button>
+
+              <button
+                type="button"
+                class="cancel"
+                (click)="cancelOrder(order)"
+                [disabled]="!canCancel(order) || processingOrderId === order.id"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

@@ -1,0 +1,229 @@
+<a routerLink="/athlete" class="back-link">
+  ← Back to athlete dashboard
+</a>
+
+<section class="card">
+  <h1>Individual training</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <h2>Find trainers</h2>
+
+  <div class="filter-form">
+    <label>
+      Facility
+      <select name="facilityFilter" [(ngModel)]="filters.facilityId">
+        <option [ngValue]="null">All facilities</option>
+
+        @for (facility of facilities; track facility.id) {
+          <option [ngValue]="facility.id">
+            {{ facility.name }} - {{ facility.city }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Sport
+      <select name="sportFilter" [(ngModel)]="filters.sportId">
+        <option [ngValue]="null">All sports</option>
+
+        @for (sport of sports; track sport.id) {
+          <option [ngValue]="sport.id">
+            {{ sport.name }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <div class="button-row">
+      <button type="button" (click)="loadTrainers()" [disabled]="loadingTrainers">
+        {{ loadingTrainers ? 'Searching...' : 'Search trainers' }}
+      </button>
+
+      <button type="button" class="secondary" (click)="clearFilters()">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  @if (loadingTrainers) {
+    <p>Loading trainers...</p>
+  } @else if (trainers.length === 0) {
+    <p class="hint">No trainers found.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Trainer</th>
+          <th>Facility</th>
+          <th>Sport</th>
+          <th>Specialization</th>
+          <th>Rating</th>
+          <th>Price/h</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (trainer of trainers; track trainer.id) {
+          <tr>
+            <td>{{ trainerName(trainer) }}</td>
+            <td>{{ facilityName(trainer.facilityId) }}</td>
+            <td>{{ sportName(trainer.sportId) }}</td>
+            <td>{{ trainer.specialization }}</td>
+            <td>{{ trainer.averageRating }}</td>
+            <td>{{ trainer.pricePerHour }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card">
+  <h2>Schedule training session</h2>
+
+  <form class="session-form" (ngSubmit)="createSession()">
+    <div class="grid">
+      <label>
+        Trainer
+        <select
+          name="trainerId"
+          [(ngModel)]="sessionForm.trainerId"
+          (ngModelChange)="onTrainerChange()"
+        >
+          <option [ngValue]="null">Choose trainer</option>
+
+          @for (trainer of trainers; track trainer.id) {
+            <option [ngValue]="trainer.id">
+              {{ trainerName(trainer) }} - {{ sportName(trainer.sportId) }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Terrain / hall
+        <select
+          name="resourceId"
+          [(ngModel)]="sessionForm.resourceId"
+          [disabled]="sessionForm.trainerId === null"
+        >
+          <option [ngValue]="null">Choose resource</option>
+
+          @for (resource of resources; track resource.id) {
+            <option [ngValue]="resource.id">
+              {{ resource.name }} - {{ resource.type }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Selected trainer info
+        <input
+          type="text"
+          [value]="selectedTrainerInfo()"
+          disabled
+        />
+      </label>
+
+      <label>
+        Start time
+        <input
+          type="datetime-local"
+          name="startTime"
+          step="3600"
+          [(ngModel)]="sessionForm.startTime"
+        />
+      </label>
+
+      <label>
+        End time
+        <input
+          type="datetime-local"
+          name="endTime"
+          step="3600"
+          [(ngModel)]="sessionForm.endTime"
+        />
+      </label>
+    </div>
+
+    <button
+      type="submit"
+      class="create-button"
+      [class.ready]="isCreateFormValid()"
+      [disabled]="creating || !isCreateFormValid()"
+    >
+      {{ creating ? 'Scheduling...' : 'Schedule training' }}
+    </button>
+  </form>
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My training sessions</h2>
+      <p class="hint">
+        List of your scheduled individual training sessions.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadSessions()" [disabled]="loadingSessions">
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingSessions) {
+    <p>Loading training sessions...</p>
+  } @else if (sessions.length === 0) {
+    <p class="hint">You have no training sessions.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Trainer</th>
+          <th>Facility</th>
+          <th>Terrain / hall</th>
+          <th>Sport</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Price/h</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (session of sessions; track session.id) {
+          <tr>
+            <td>{{ trainerNameById(session.trainerId) }}</td>
+            <td>{{ facilityName(session.facilityId) }}</td>
+            <td>{{ resourceName(session.resourceId) }}</td>
+            <td>{{ sportName(session.sportId) }}</td>
+            <td>{{ formatDateTime(session.startTime) }}</td>
+            <td>{{ formatDateTime(session.endTime) }}</td>
+            <td>{{ session.pricePerHour }}</td>
+            <td>
+              <span
+                class="status"
+                [class.scheduled]="session.status === 'SCHEDULED'"
+              >
+                {{ session.status }}
+              </span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

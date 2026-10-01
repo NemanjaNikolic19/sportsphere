@@ -1,0 +1,185 @@
+<a [routerLink]="backRoute()" class="back-link">
+  ← Back to profile
+</a>
+
+<section class="card">
+  <h1>Change profile picture</h1>
+
+  <p class="hint">
+    Upload a PNG/JPG image or generate an avatar.
+    The selected image is stored only after you press
+    Save picture.
+  </p>
+
+  @if(errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if(successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  @if(user && (
+    user.role === 'ATHLETE' ||
+    user.role === 'EMPLOYEE'
+  )) {
+    <div class="picture-comparison">
+      <div class="picture-panel">
+        <h2>Current picture</h2>
+
+        <img
+          [src]="currentImageUrl()"
+          [alt]="user.firstName + ' ' + user.lastName"
+        />
+      </div>
+
+      <div class="picture-panel">
+        <h2>New picture</h2>
+
+        @if(selectedImagePreview) {
+          <img
+            [src]="selectedImagePreview"
+            alt="New profile picture preview"
+          />
+        } @else {
+          <div class="empty-preview">
+            Choose an image below
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="upload-section">
+      <h2>Upload picture</h2>
+
+      <label class="file-label">
+        Select a PNG or JPG image
+
+        <input
+          #profileImageInput
+          type="file"
+          accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+          (change)="onProfileImageSelected($event)"
+        />
+      </label>
+
+      <p class="hint">
+        Maximum size: 5 MB.
+      </p>
+    </div>
+
+    <div class="divider">
+      <span>or</span>
+    </div>
+
+    <div class="avatar-section">
+      <h2>Generate avatar</h2>
+
+      <div class="avatar-actions">
+        <button
+          type="button"
+          class="generate"
+          [disabled]="savingGeneratedAvatar"
+          (click)="generateAvatar()"
+        >
+          {{
+            generatedAvatarPreview
+              ? 'Generate another avatar'
+              : 'Generate avatar'
+          }}
+        </button>
+
+        @if(generatedAvatarPreview) {
+          <button
+            type="button"
+            class="use-avatar"
+            [disabled]="savingGeneratedAvatar"
+            (click)="useGeneratedAvatar()"
+          >
+            {{
+              savingGeneratedAvatar
+                ? 'Converting...'
+                : 'Use as new picture'
+            }}
+          </button>
+        }
+      </div>
+
+      @if(generatedAvatarPreview) {
+        <div class="avatar-preview">
+          <img
+            [src]="generatedAvatarPreview"
+            alt="Generated avatar preview"
+          />
+
+          <p>
+            The avatar is converted to PNG and uploaded
+            through the same endpoint as a selected file.
+          </p>
+        </div>
+      }
+    </div>
+
+    <div class="page-actions">
+      <button
+        type="button"
+        class="save"
+        [disabled]="
+          selectedImage === null ||
+          uploading ||
+          removing ||
+          savingGeneratedAvatar
+        "
+        (click)="savePicture()"
+      >
+        {{
+          uploading
+            ? 'Saving...'
+            : 'Save picture'
+        }}
+      </button>
+
+      @if(selectedImage) {
+        <button
+          type="button"
+          class="secondary"
+          [disabled]="uploading"
+          (click)="clearSelectedImage()"
+        >
+          Clear selection
+        </button>
+      }
+
+      <button
+        type="button"
+        class="remove"
+        [disabled]="
+          isDefaultPicture() ||
+          uploading ||
+          removing ||
+          savingGeneratedAvatar
+        "
+        (click)="removePicture()"
+      >
+        {{
+          removing
+            ? 'Removing...'
+            : 'Remove picture'
+        }}
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        [disabled]="uploading || removing"
+        (click)="cancel()"
+      >
+        Back
+      </button>
+    </div>
+  }
+</section>

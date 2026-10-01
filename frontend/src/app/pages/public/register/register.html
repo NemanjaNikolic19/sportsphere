@@ -1,0 +1,289 @@
+<section class="card">
+    <h1>Register</h1>
+    <p class="hint">
+        Create an athlete or employee account. Your account will become active after admin approval.
+    </p>
+
+    @if(errorMessage) {
+        <div class="error">
+            {{ errorMessage }}
+        </div>
+    }
+
+    @if(successMessage) {
+        <div class="success">
+            {{ successMessage }}
+            <br />
+            <a routerLink="/login">Go to login</a>
+        </div>
+    }
+
+    <form class="register-form" (ngSubmit)="submit()">
+        <h2>Accout</h2>
+
+        <div class="grid">
+            <label>
+                Role
+                <select name="role" [(ngModel)]="request.role">
+                    <option value="ATHLETE">Athlete</option>
+                    <option value="EMPLOYEE">Employee</option>
+                </select>
+            </label>
+
+            <label>
+                Username
+                <input
+                    type="text"
+                    name="username"
+                    [(ngModel)]="request.username"
+                    required
+                />
+            </label>
+
+            <label>
+                Password
+                <input 
+                    type="password" 
+                    name="password" 
+                    [(ngModel)]="request.password"
+                    required
+                />
+            </label>
+
+            <label>
+                Confirm password
+                <input type="password" 
+                    name="confirmPassword" 
+                    [(ngModel)]="confirmPassword"
+                    required
+                />
+            </label>
+        </div>
+
+        <p class="password-hint">
+            Password must have 8-12 characters, start with a letter, and contain uppercase letter, digit and special character.
+        </p>
+
+        <h2>Personal data</h2>
+
+        <div class="grid">
+            <label>
+                First name
+                <input
+                    type="text"
+                    name="firstName"
+                    [(ngModel)]="request.firstName"
+                    required
+                />
+            </label>
+
+            <label>
+                Last name
+                <input
+                    type="text"
+                    name="lastName"
+                    [(ngModel)]="request.lastName"
+                    required
+                />
+            </label>
+
+            <label>
+                Phone
+                <input
+                    type="text"
+                    name="phone"
+                    [(ngModel)]="request.phone"
+                    required
+                />
+            </label>
+
+            <label>
+                Email
+                <input
+                    type="text"
+                    name="email"
+                    [(ngModel)]="request.email"
+                    required
+                />
+            </label>
+        </div>
+
+        <h2>Profile image</h2>
+        <div class="profile-image-section">
+            <label class="file-label">
+                Upload a PNG or JPG image
+
+                <input
+                    #profileImageInput
+                    type="file"
+                    accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                    (change)="onProfileImageSelected($event)"
+                />
+            </label>
+
+            <p class="image-hint">
+                Maximum size: 5 MB. If no image is selected,
+                the default profile image will be used.
+            </p>
+
+            <div class="avatar-divider">
+                <span>or</span>
+            </div>
+
+            <div class="avatar-generator">
+                <div class="avatar-actions">
+                <button
+                    type="button"
+                    class="generate-avatar"
+                    [disabled]="savingGeneratedAvatar"
+                    (click)="generateAvatar()"
+                >
+                    {{
+                    generatedAvatarPreview
+                        ? 'Generate another avatar'
+                        : 'Generate avatar'
+                    }}
+                </button>
+
+                @if(generatedAvatarPreview) {
+                    <button
+                        type="button"
+                        class="save-avatar"
+                        [disabled]="savingGeneratedAvatar"
+                        (click)="saveGeneratedAvatar()"
+                    >
+                    {{
+                        savingGeneratedAvatar
+                        ? 'Converting...'
+                        : 'Save as profile image'
+                    }}
+                    </button>
+                }
+                </div>
+
+                @if(generatedAvatarPreview) {
+                <div class="generated-avatar-preview">
+                    <img
+                        [src]="generatedAvatarPreview"
+                        alt="Generated avatar preview"
+                    />
+
+                    <div>
+                    <strong>Generated avatar preview</strong>
+
+                    <p>
+                        This avatar will not be uploaded until you
+                        select “Save as profile image.”
+                    </p>
+                    </div>
+                </div>
+                }
+
+                @if(avatarMessage) {
+                <p class="avatar-message">
+                    {{ avatarMessage }}
+                </p>
+                }
+            </div>
+
+            @if(profileImagePreview) {
+                <div class="profile-preview">
+                <img
+                    [src]="profileImagePreview"
+                    alt="Selected profile image preview"
+                />
+
+                <div>
+                    <span class="selected-image-label">
+                    Selected profile image
+                    </span>
+
+                    <strong>
+                    {{ profileImage?.name }}
+                    </strong>
+
+                    <button
+                        type="button"
+                        class="secondary"
+                        (click)="removeProfileImage()"
+                    >
+                    Remove image
+                    </button>
+                </div>
+                </div>
+            }
+            </div>
+
+        <h2>Favorite sports</h2>
+        @if(loadingSports) {
+            <p>Loading sports...</p>
+        } @else {
+            <div class="sport-list">
+                @for(sport of sports; track sport.id) {
+                    <label class="checkbox-label">
+                        <input 
+                            type="checkbox" 
+                            [checked]="isFavoriteSportSelected(sport.id)" 
+                            (change)="toggleFavoriteSport(sport.id, $event)"
+                        />
+                        {{ sport.name }}
+                    </label>
+                }
+            </div>
+        }
+
+        @if(isEmployee()) {
+            <h2>Organization</h2>
+
+            <div class="grid">
+                <label>
+                    Organization name
+                    <input
+                        type="text"
+                        name="organizationName"
+                        [(ngModel)]="request.organizationName"
+                    />
+                </label>
+                
+                <label>
+                    Headquarters address
+                    <input
+                        type="text"
+                        name="headquartersAddress"
+                        [(ngModel)]="request.headquartersAddress"
+                    />
+                </label>
+
+                <label>
+                    Registration number
+                    <input
+                        type="text"
+                        name="registrationNumber"
+                        [(ngModel)]="request.registrationNumber"
+                    />
+                </label>
+
+                <label>
+                    Tax number
+                    <input
+                        type="text"
+                        name="taxNumber"
+                        [(ngModel)]="request.taxNumber"
+                    />
+                </label>
+            </div>
+        }
+
+        <div class="actions">
+            <button type="submit" [disabled]="loading">
+                {{ loading ? 'Registering...' : 'Register' }}
+            </button>
+
+            <a routerLink="/login">
+                Already have an account?
+            </a>
+        </div>
+
+    </form>
+
+</section>

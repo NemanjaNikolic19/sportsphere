@@ -1,0 +1,97 @@
+<a routerLink="/admin" class="back-link">
+    ← Back to admin dashboard
+</a>
+
+<section class="card">
+    <div class="title-row">
+        <div>
+            <h1>Pending facilities</h1>
+            <p class="hint">
+                Approve or reject sports facilities submitted by employees.
+            </p>
+        </div>
+
+        <button 
+            type="button"
+            class="secondary"
+            (click)="loadPendingFacilities()"
+            [disabled]="loading"    
+        >
+            Refresh
+        </button>
+    </div>
+
+    @if(errroMessage) {
+        <div class="error">
+            {{ errroMessage }}
+        </div>
+    }
+
+    @if(successMessage) {
+        <div class="success">
+            {{ successMessage }}
+        </div>
+    }
+
+    @if (loading) {
+        <p>Loading pending facilities...</p>
+    } @else if (facilities.length === 0) {
+        <p class="hint">There are no pending facilities.</p>
+    } @else {
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>City</th>
+                    <th>Address</th>
+                    <th>Price/h</th>
+                    <th>Working time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+        
+            <tbody>
+                @for (facility of facilities; track facility.id) {
+                    <tr>
+                        <td>
+                            <strong>{{ facility.name }}</strong>
+                            <br>
+                            <span class="description">{{ facility.description }}</span>
+                        </td>
+                        <td>{{ facility.city }}</td>
+                        <td>{{ facility.address }}</td>
+                        <td>{{ facility.pricePerHour }}</td>
+                        <td>
+                            {{ facility.workingTimeFrom }} - {{ facility.workingTimeTo }}
+                        </td>
+                        <td>
+                            <span class="status">
+                                {{ facility.status }}
+                            </span>
+                        </td>
+                        <td class="actions">
+                            <button
+                                type="button"
+                                class="approve"
+                                (click)="approve(facility)"
+                                [disabled]="processingFacilityId === facility.id"
+                            >
+                                Approve
+                            </button>
+
+                            <button
+                                type="button"
+                                class="reject"
+                                (click)="reject(facility)"
+                                [disabled]="processingFacilityId === facility.id"
+                            >
+                                Reject
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>

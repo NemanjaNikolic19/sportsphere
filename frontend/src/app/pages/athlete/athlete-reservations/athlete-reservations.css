@@ -1,0 +1,306 @@
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+h1,
+h2 {
+  margin-top: 0;
+}
+
+.hint {
+  color: #64748b;
+}
+
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 12px 0;
+}
+
+.success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 12px 0;
+}
+
+.reservation-form {
+  margin-top: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+input,
+select {
+  padding: 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+input:disabled,
+select:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f1f5f9;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.status.requested {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status.confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+button {
+  padding: 9px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #64748b;
+}
+
+button.cancel {
+  background: #dc2626;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .title-row {
+    flex-direction: column;
+  }
+
+  table {
+    font-size: 14px;
+  }
+}
+
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.selected-calendar {
+  flex: 1;
+  text-align: center;
+}
+
+.selected-calendar h2,
+.selected-calendar p {
+  margin: 0;
+}
+
+.selected-calendar p {
+  margin-top: 6px;
+}
+
+button.rotation-button {
+  min-width: 48px;
+  padding: 10px 16px;
+  font-size: 22px;
+  background-color: #475569;
+}
+
+button.rotation-button:disabled {
+  opacity: 0.35;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+}
+
+.calendar-table {
+  min-width: 950px;
+  table-layout: fixed;
+}
+
+.calendar-table th,
+.calendar-table td {
+  padding: 4px;
+  text-align: center;
+}
+
+.calendar-table .time-cell {
+  width: 75px;
+  font-weight: 700;
+}
+
+button.calendar-slot {
+  width: 100%;
+  min-height: 46px;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+button.calendar-slot.free {
+  color: #166534;
+  background-color: #dcfce7;
+  border-color: #86efac;
+}
+
+button.calendar-slot.occupied {
+  color: #991b1b;
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+button.calendar-slot.past {
+  color: #64748b;
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+button.calendar-slot.selected {
+  color: white;
+  background-color: #2563eb;
+  border-color: #1d4ed8;
+}
+
+button.calendar-slot:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.calendar-legend span {
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.legend-free {
+  color: #166534;
+  background-color: #dcfce7;
+}
+
+.legend-occupied {
+  color: #991b1b;
+  background-color: #fee2e2;
+}
+
+.legend-selected {
+  color: white;
+  background-color: #2563eb;
+}
+
+.legend-past {
+  color: #64748b;
+  background-color: #e2e8f0;
+}
+
+.calendar-selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px;
+  background-color: #eff6ff;
+  border-radius: 7px;
+}
+
+@media (max-width: 700px) {
+  .week-navigation,
+  .calendar-selection {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,308 @@
+<a routerLink="/athlete" class="back-link">
+  ← Back to athlete dashboard
+</a>
+
+<section class="card">
+  <h1>Reservations</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <h2>Create reservation</h2>
+
+  <form class="reservation-form" (ngSubmit)="createReservation()">
+    <div class="grid">
+      <label>
+        Facility
+        <select
+          name="facilityId"
+          [(ngModel)]="reservationForm.facilityId"
+          (ngModelChange)="onFacilityChange()"
+        >
+          <option [ngValue]="null">Choose facility</option>
+
+          @for (facility of facilities; track facility.id) {
+            <option [ngValue]="facility.id">
+              {{ facility.name }} - {{ facility.city }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Resource
+        <select
+          name="resourceId"
+          [(ngModel)]="reservationForm.resourceId"
+          (ngModelChange)="onResourceChange()"
+          [disabled]="resources.length === 0"
+        >
+          <option [ngValue]="null">
+            {{ loadingResources ? 'Loading resources...' : 'Choose resource' }}
+          </option>
+
+          @for (resource of resources; track resource.id) {
+            <option [ngValue]="resource.id">
+              {{ resourceLabel(resource) }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Sport
+        <input
+          type="text"
+          [value]="selectedResourceSportName()"
+          disabled
+        />
+      </label>
+
+      <label>
+        Start time
+        <input
+          type="datetime-local"
+          name="startTime"
+          step="3600"
+          [(ngModel)]="reservationForm.startTime"
+        />
+      </label>
+
+      <label>
+        End time
+        <input
+          type="datetime-local"
+          name="endTime"
+          step="3600"
+          [(ngModel)]="reservationForm.endTime"
+        />
+      </label>
+    </div>
+
+    <button type="submit" [disabled]="creating">
+      {{ creating ? 'Creating...' : 'Create reservation' }}
+    </button>
+  </form>
+</section>
+
+@if (reservationForm.resourceId !== null) {
+  <section class="card">
+    <div class="calendar-navigation">
+      <button
+        type="button"
+        class="rotation-button"
+        (click)="rotateResource(-1)"
+        [disabled]="rotatableResources().length <= 1"
+        title="Previous resource"
+      >
+        ←
+      </button>
+
+      <div class="selected-calendar">
+        <h2>
+          Schedule: {{ selectedResource()?.name }}
+        </h2>
+
+        <p class="hint">
+          {{ selectedResource()?.type }}
+          · Resource {{ resourcePosition() }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="rotation-button"
+        (click)="rotateResource(1)"
+        [disabled]="rotatableResources().length <= 1"
+        title="Next resource"
+      >
+        →
+      </button>
+    </div>
+
+    @if(loadingResourceReservations) {
+  <p>Loading calendar...</p>
+} @else {
+  <div class="week-navigation">
+    <button
+      type="button"
+      class="secondary"
+      (click)="changeWeek(-1)"
+    >
+      ← Previous week
+    </button>
+
+    <strong>{{ calendarRangeLabel() }}</strong>
+
+    <button
+      type="button"
+      class="secondary"
+      (click)="changeWeek(1)"
+    >
+      Next week →
+    </button>
+  </div>
+
+  <div class="calendar-scroll">
+    <table class="calendar-table">
+      <thead>
+        <tr>
+          <th class="time-cell">Time</th>
+
+          @for(day of calendarDays; track dateKey(day)) {
+            <th>{{ dayLabel(day) }}</th>
+          }
+        </tr>
+      </thead>
+
+      <tbody>
+        @for(hour of calendarHours; track hour) {
+          <tr>
+            <th class="time-cell">
+              {{ hourLabel(hour) }}
+            </th>
+
+            @for(day of calendarDays; track dateKey(day)) {
+              <td>
+                <button
+                  type="button"
+                  class="calendar-slot"
+                  [class.free]="
+                    !isSlotPast(day, hour) &&
+                    !isSlotOccupied(day, hour)
+                  "
+                  [class.past]="isSlotPast(day, hour)"
+                  [class.occupied]="isSlotOccupied(day, hour)"
+                  [class.selected]="isSelectedSlot(day, hour)"
+                  [disabled]="isSlotUnavailable(day, hour)"
+                  (click)="selectCalendarSlot(day, hour)"
+                >
+                  {{
+                    isSlotOccupied(day, hour)
+                      ? 'Occupied'
+                      : isSlotPast(day, hour)
+                        ? 'Past'
+                        : isSelectedSlot(day, hour)
+                          ? 'Selected'
+                          : 'Free'
+                  }}
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="calendar-legend">
+    <span class="legend-free">Free</span>
+    <span class="legend-occupied">Occupied</span>
+    <span class="legend-selected">Your selection</span>
+    <span class="legend-past">Past</span>
+  </div>
+
+  @if(
+    reservationForm.startTime &&
+    reservationForm.endTime
+  ) {
+    <div class="calendar-selection">
+      <span>
+        Selected:
+        {{ formatDateTime(reservationForm.startTime) }}
+        –
+        {{ formatDateTime(reservationForm.endTime) }}
+      </span>
+
+      <button
+        type="button"
+        (click)="createReservation()"
+        [disabled]="creating"
+      >
+        {{
+          creating
+            ? 'Reserving...'
+            : 'Reserve selected hour'
+        }}
+      </button>
+    </div>
+  }
+}
+  </section>
+}
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My reservations</h2>
+      <p class="hint">
+        Cancel is allowed only if backend 12-hour rule is satisfied.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadReservations()" [disabled]="loading">
+      Refresh
+    </button>
+  </div>
+
+  @if (loading) {
+    <p>Loading reservations...</p>
+  } @else if (reservations.length === 0) {
+    <p class="hint">You have no reservations.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Facility</th>
+          <th>Resource</th>
+          <th>Sport</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+          <th>Cancel</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (reservation of reservations; track reservation.id) {
+          <tr>
+            <td>{{ facilityName(reservation.facilityId) }}</td>
+            <td>#{{ reservation.resourceId }}</td>
+            <td>{{ sportName(reservation.sportId) }}</td>
+            <td>{{ formatDateTime(reservation.startTime) }}</td>
+            <td>{{ formatDateTime(reservation.endTime) }}</td>
+            <td>
+              <span
+                class="status"
+                [class.requested]="reservation.status === 'REQUESTED'"
+                [class.cancelled]="reservation.status === 'CANCELLED'"
+                [class.confirmed]="reservation.status === 'CONFIRMED'"
+              >
+                {{ reservation.status }}
+              </span>
+            </td>
+            <td>
+              <button
+                type="button"
+                class="cancel"
+                (click)="cancelReservation(reservation)"
+                [disabled]="!canCancel(reservation) || cancellingReservationId === reservation.id"
+              >
+                Cancel
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

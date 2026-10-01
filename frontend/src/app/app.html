@@ -1,0 +1,65 @@
+<header class="topbar">
+  <div class="brand" routerLink="/">
+    SportSphere Hub
+  </div>
+  <nav>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions] = "{exact: true}">
+      Home
+    </a>
+
+    <a routerLink="/search" routerLinkActive="active">
+      Search
+    </a>
+
+    <a routerLink="/promotions" routerLinkActive="active">
+      Promotions
+    </a>
+
+    <a routerLink="/register" routerLinkActive="active">
+      Register
+    </a>
+
+    @if(!auth.isLoggedIn()) {
+      <a routerLink="/login" routerLinkActive = "active">
+        Login
+      </a>
+    }
+
+    @if(auth.currentUser(); as user){
+      @if(user.role === 'ATHLETE') {
+        <a routerLink="/athlete" routerLinkActive="active">
+          Athlete
+        </a>
+      }
+
+      @if(user.role === 'EMPLOYEE') {
+        <a routerLink="/employee" routerLinkActive="active">
+          Employee
+        </a>
+      }
+
+      @if(user.role === 'ADMIN') {
+        <a routerLink="/admin" routerLinkActive="active">
+          Admin
+        </a>
+      }
+
+      <span class="user-info">
+        {{ user.firstName }} {{ user.lastName}} ({{ user.role }})
+      </span>
+
+      <button type="button" (click)="logout()">
+        Logout
+      </button>
+    }
+  </nav>
+
+</header>
+
+<main class="page">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="footer">
+  SportSphere Hub - PIA project
+</footer>

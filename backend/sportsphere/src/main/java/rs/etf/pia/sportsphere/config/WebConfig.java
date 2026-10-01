@@ -1,0 +1,42 @@
+package rs.etf.pia.sportsphere.config;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(
+            ResourceHandlerRegistry registry) {
+
+        Path profileImagesDirectory =
+            Paths.get(
+                "uploads",
+                "profile-images"
+            )
+            .toAbsolutePath()
+            .normalize();
+
+        String resourceLocation =
+            profileImagesDirectory
+                .toUri()
+                .toString();
+
+        if(!resourceLocation.endsWith("/")) {
+            resourceLocation += "/";
+        }
+
+        registry
+            .addResourceHandler(
+                "/api/profile-images/**"
+            )
+            .addResourceLocations(
+                resourceLocation
+            );
+    }
+}

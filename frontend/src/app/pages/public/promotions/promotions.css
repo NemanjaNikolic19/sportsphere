@@ -1,0 +1,62 @@
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+h1,
+h2,
+h3 {
+  margin-top: 0;
+}
+
+.hint {
+  color: #64748b;
+}
+
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.promotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.promotion-card {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.promotion-card.upcoming {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.promotion-card p {
+  margin: 8px 0;
+}
+
+@media (max-width: 900px) {
+  .promotion-grid {
+    grid-template-columns: 1fr;
+  }
+}

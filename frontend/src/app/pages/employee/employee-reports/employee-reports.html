@@ -1,0 +1,89 @@
+<a routerLink="/employee" class="back-link">
+  ← Back to employee dashboard
+</a>
+
+<section class="card">
+  <h1>Employee reports</h1>
+
+  <p class="hint">
+    Generate monthly PDF reports for facilities managed by you.
+  </p>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+</section>
+
+<section class="card">
+  <h2>Monthly report</h2>
+
+  <p>
+    The generated PDF contains resource occupancy and equipment turnover for the selected month.
+  </p>
+
+  <form class="report-form" (ngSubmit)="generateReport()">
+    <div class="grid">
+      <label>
+        Year
+        <select name="selectedYear" [(ngModel)]="selectedYear">
+          @for (year of years; track year) {
+            <option [ngValue]="year">
+              {{ year }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Month
+        <select name="selectedMonth" [(ngModel)]="selectedMonth">
+          @for (month of months; track month.value) {
+            <option [ngValue]="month.value">
+              {{ month.label }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <button
+      type="submit"
+      class="generate-button"
+      [class.ready]="isFormValid()"
+      [disabled]="generating || !isFormValid()"
+    >
+      {{ generating ? 'Generating...' : 'Generate PDF report' }}
+    </button>
+  </form>
+</section>
+
+<section class="card preview-card">
+  <h2>Selected report</h2>
+
+  <div class="report-preview">
+    <p>
+      Employee:
+      <strong>#{{ employeeId }}</strong>
+    </p>
+
+    <p>
+      Month:
+      <strong>{{ selectedMonthLabel() }} {{ selectedYear }}</strong>
+    </p>
+
+    <p>
+      File name:
+      <strong>
+        sportsphere-report-{{ selectedYear }}-{{ selectedMonth < 10 ? '0' + selectedMonth : selectedMonth }}.pdf
+      </strong>
+    </p>
+  </div>
+</section>

@@ -1,0 +1,60 @@
+<section class="card">
+    <h1>Admin dashboard</h1>
+    <p class="hint">
+        Manage users, registration requests and facility approval requests.
+    </p>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-row dashboard-row-two">
+        <a routerLink="/admin/users" class="dashboard-card">
+          <div class="dashboard-card-copy">
+            <h2>All users</h2>
+            <p>View, update or delete existing users.</p>
+          </div>
+
+          <div class="dashboard-card-action" aria-hidden="true">
+            <span class="dashboard-card-icon">👥</span>
+            <span class="dashboard-card-arrow">→</span>
+          </div>
+        </a>
+
+        <a routerLink="/admin/catalog" class="dashboard-card">
+          <div class="dashboard-card-copy">
+            <h2>Sports and trainers</h2>
+            <p>Add sports, view trainers and deactivate trainers.</p>
+          </div>
+
+          <div class="dashboard-card-action" aria-hidden="true">
+            <span class="dashboard-card-icon">🏅</span>
+            <span class="dashboard-card-arrow">→</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="dashboard-row dashboard-row-two">
+        <a routerLink="/admin/users/pending" class="dashboard-card">
+          <div class="dashboard-card-copy">
+            <h2>Pending users</h2>
+            <p>Approve or reject athlete and employee registration requests.</p>
+          </div>
+
+          <div class="dashboard-card-action" aria-hidden="true">
+            <span class="dashboard-card-icon">⏳</span>
+            <span class="dashboard-card-arrow">→</span>
+          </div>
+        </a>
+
+        <a routerLink="/admin/facilities/pending" class="dashboard-card">
+          <div class="dashboard-card-copy">
+            <h2>Pending facilities</h2>
+            <p>Approve or reject newly submitted sports facilities.</p>
+          </div>
+
+          <div class="dashboard-card-action" aria-hidden="true">
+            <span class="dashboard-card-icon">🏟️</span>
+            <span class="dashboard-card-arrow">→</span>
+          </div>
+        </a>
+      </div>
+  </div>
+</section>

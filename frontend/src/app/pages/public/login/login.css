@@ -1,0 +1,61 @@
+.login-card {
+    background: white;
+    padding: 24px;
+    border-radius: 10px;
+    max-width:420px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+h1 {
+    margin-top: 0;
+}
+
+.hint {
+    color: #64748b;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 18px 0;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+input {
+    padding: 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    font-weight: 700;
+}
+
+button:disabled {
+    opacity: 0.7;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 10px;
+    border-radius: 6px;
+    margin: 12px 0;
+}
+
+.demo {
+    color: #475569;
+    font-size: 14px;
+}

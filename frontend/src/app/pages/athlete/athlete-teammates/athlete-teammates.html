@@ -1,0 +1,311 @@
+<a routerLink="/athlete" class="back-link">
+  ← Back to athlete dashboard
+</a>
+
+<section class="card">
+  <h1>Teammate ads</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <h2>Create new ad</h2>
+
+  <form class="ad-form" (ngSubmit)="createAd()">
+    <div class="grid">
+      <label>
+        Sport
+        <select name="sportId" [(ngModel)]="createForm.sportId">
+          <option [ngValue]="null">Choose sport</option>
+
+          @for (sport of sports; track sport.id) {
+            <option [ngValue]="sport.id">
+              {{ sport.name }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        City
+        <select name="city" [(ngModel)]="createForm.city">
+          <option value="">Choose city</option>
+
+          @for (city of cities; track city) {
+            <option [value]="city">
+              {{ city }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Play date
+        <input
+          type="date"
+          name="playDate"
+          [(ngModel)]="createForm.playDate"
+        />
+      </label>
+
+      <label>
+        Start time
+        <input
+          type="time"
+          name="startTime"
+          [(ngModel)]="createForm.startTime"
+        />
+      </label>
+
+      <label>
+        End time
+        <input
+          type="time"
+          name="endTime"
+          [(ngModel)]="createForm.endTime"
+        />
+      </label>
+
+      <label>
+        Needed players
+        <input
+          type="number"
+          name="neededPlayers"
+          min="1"
+          [(ngModel)]="createForm.neededPlayers"
+        />
+      </label>
+    </div>
+
+    <button
+      type="submit"
+      class="create-button"
+      [class.ready]="isCreateFormValid()"
+      [disabled]="creating || !isCreateFormValid()"
+    >
+      {{ creating ? 'Creating...' : 'Create ad' }}
+    </button>
+  </form>
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>Other active ads</h2>
+      <p class="hint">
+        Join ads created by other athletes.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadAds()" [disabled]="loadingAds">
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingAds) {
+    <p>Loading ads...</p>
+  } @else if (otherActiveAds().length === 0) {
+    <p class="hint">There are no active teammate ads.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Sport</th>
+          <th>City</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Players</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (ad of otherActiveAds(); track ad.id) {
+          <tr>
+            <td>{{ sportName(ad.sportId) }}</td>
+            <td>{{ ad.city }}</td>
+            <td>{{ ad.playDate }}</td>
+            <td>{{ ad.startTime }} - {{ ad.endTime }}</td>
+            <td>{{ ad.acceptedPlayers }} / {{ ad.neededPlayers }}</td>
+            <td>
+              <span
+                class="status"
+                [class.active]="ad.status === 'ACTIVE'"
+                [class.completed]="ad.status === 'COMPLETED'"
+                [class.closed]="ad.status === 'CLOSED'"
+              >
+                {{ ad.status }}
+              </span>
+            </td>
+            <td class="actions">
+              @if (canJoin(ad)) {
+                <button
+                  type="button"
+                  class="join"
+                  (click)="joinAd(ad)"
+                  [disabled]="processingAdId === ad.id"
+                >
+                  Join
+                </button>
+              }
+
+              @if (!canJoin(ad) && !canClose(ad)) {
+                <span class="hint">-</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My active ads</h2>
+      <p class="hint">
+        Ads created by you. You can close them when they are no longer needed.
+      </p>
+    </div>
+  </div>
+
+  @if (loadingAds) {
+    <p>Loading ads...</p>
+  } @else if (myActiveAds().length === 0) {
+    <p class="hint">You have no active teammate ads.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Sport</th>
+          <th>City</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Players</th>
+          <th>Status</th>
+          <th>Close</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (ad of myActiveAds(); track ad.id) {
+          <tr>
+            <td>{{ sportName(ad.sportId) }}</td>
+            <td>{{ ad.city }}</td>
+            <td>{{ ad.playDate }}</td>
+            <td>{{ ad.startTime }} - {{ ad.endTime }}</td>
+            <td>{{ ad.acceptedPlayers }} / {{ ad.neededPlayers }}</td>
+            <td>
+              <span
+                class="status"
+                [class.active]="ad.status === 'ACTIVE'"
+                [class.completed]="ad.status === 'COMPLETED'"
+                [class.closed]="ad.status === 'CLOSED'"
+              >
+                {{ ad.status }}
+              </span>
+            </td>
+            <td>
+              <button
+                type="button"
+                class="close"
+                (click)="closeAd(ad)"
+                [disabled]="processingAdId === ad.id"
+              >
+                Close
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>Requests for my ads</h2>
+      <p class="hint">
+        Approve or reject requests sent by other athletes.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadRequests()" [disabled]="loadingRequests">
+      Refresh
+    </button>
+  </div>
+
+  @if (loadingRequests) {
+    <p>Loading requests...</p>
+  } @else if (requests.length === 0) {
+    <p class="hint">There are no requests for your ads.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Ad</th>
+          <th>Athlete</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (request of requests; track request.id) {
+          <tr>
+            <td>{{ adLabel(request.adId) }}</td>
+            <td>
+              {{ athleteName(request.athleteId) }}
+              <br>
+              <a [routerLink]="['/athlete/profile',request.athleteId]">
+                details
+              </a>
+            </td>
+            <td>
+              <span
+                class="status"
+                [class.pending]="request.status === 'PENDING'"
+                [class.accepted]="request.status === 'ACCEPTED'"
+                [class.rejected]="request.status === 'REJECTED'"
+              >
+                {{ request.status }}
+              </span>
+            </td>
+            <td>{{ request.createdAt }}</td>
+            <td class="actions">
+              <button
+                type="button"
+                class="approve"
+                (click)="approveRequest(request)"
+                [disabled]="!canProcessRequest(request) || processingRequestId === request.id"
+              >
+                Approve
+              </button>
+
+              <button
+                type="button"
+                class="reject"
+                (click)="rejectRequest(request)"
+                [disabled]="!canProcessRequest(request) || processingRequestId === request.id"
+              >
+                Reject
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

@@ -1,0 +1,292 @@
+<a routerLink="/employee" class="back-link">
+  ← Back to employee dashboard
+</a>
+
+<section class="card">
+  <h1>Employee facilities</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <h2>Create facility</h2>
+
+  <form class="facility-form" (ngSubmit)="createFacility()">
+    <div class="grid">
+      <label>
+        Name
+        <input
+          type="text"
+          name="createName"
+          [(ngModel)]="createForm.name"
+        />
+      </label>
+
+      <label>
+        City
+        <input
+          type="text"
+          name="createCity"
+          [(ngModel)]="createForm.city"
+        />
+      </label>
+
+      <label>
+        Address
+        <input
+          type="text"
+          name="createAddress"
+          [(ngModel)]="createForm.address"
+        />
+      </label>
+
+      <label>
+        Price per hour
+        <input
+          type="number"
+          name="createPrice"
+          min="1"
+          [(ngModel)]="createForm.pricePerHour"
+        />
+      </label>
+
+      <label>
+        Working time from
+        <input
+          type="time"
+          name="createWorkingFrom"
+          [(ngModel)]="createForm.workingTimeFrom"
+        />
+      </label>
+
+      <label>
+        Working time to
+        <input
+          type="time"
+          name="createWorkingTo"
+          [(ngModel)]="createForm.workingTimeTo"
+        />
+      </label>
+
+      <label>
+        Allowed no-shows
+        <input
+          type="number"
+          name="createAllowedNoShows"
+          min="0"
+          [(ngModel)]="createForm.allowedNoShows"
+        />
+      </label>
+    </div>
+
+    <label>
+      Description
+      <textarea
+        name="createDescription"
+        [(ngModel)]="createForm.description"
+      ></textarea>
+    </label>
+
+    <button
+      type="submit"
+      class="create-button"
+      [class.ready]="isCreateFormValid()"
+      [disabled]="creating || !isCreateFormValid()"
+    >
+      {{ creating ? 'Creating...' : 'Create facility' }}
+    </button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Import facilities from JSON</h2>
+
+  <p class="hint">
+    JSON can contain one facility object or an array of facility objects.
+  </p>
+
+  <div class="import-row">
+    <input
+      type="file"
+      accept=".json,application/json"
+      (change)="onImportFileSelected($event)"
+    />
+
+    <button type="button" (click)="importJson()" [disabled]="importing">
+      {{ importing ? 'Importing...' : 'Import JSON' }}
+    </button>
+  </div>
+</section>
+
+@if (editing) {
+  <section class="card edit-card">
+    <h2>Edit facility</h2>
+
+    <form class="facility-form" (ngSubmit)="saveEdit()">
+      <div class="grid">
+        <label>
+          Name
+          <input
+            type="text"
+            name="editName"
+            [(ngModel)]="editForm.name"
+          />
+        </label>
+
+        <label>
+          City
+          <input
+            type="text"
+            name="editCity"
+            [(ngModel)]="editForm.city"
+          />
+        </label>
+
+        <label>
+          Address
+          <input
+            type="text"
+            name="editAddress"
+            [(ngModel)]="editForm.address"
+          />
+        </label>
+
+        <label>
+          Price per hour
+          <input
+            type="number"
+            name="editPrice"
+            min="1"
+            [(ngModel)]="editForm.pricePerHour"
+          />
+        </label>
+
+        <label>
+          Working time from
+          <input
+            type="time"
+            name="editWorkingFrom"
+            [(ngModel)]="editForm.workingTimeFrom"
+          />
+        </label>
+
+        <label>
+          Working time to
+          <input
+            type="time"
+            name="editWorkingTo"
+            [(ngModel)]="editForm.workingTimeTo"
+          />
+        </label>
+
+        <label>
+          Allowed no-shows
+          <input
+            type="number"
+            name="editAllowedNoShows"
+            min="0"
+            [(ngModel)]="editForm.allowedNoShows"
+          />
+        </label>
+      </div>
+
+      <label>
+        Description
+        <textarea
+          name="editDescription"
+          [(ngModel)]="editForm.description"
+        ></textarea>
+      </label>
+
+      <div class="button-row">
+        <button
+          type="submit"
+          class="save"
+          [disabled]="saving || !isEditFormValid()"
+        >
+          {{ saving ? 'Saving...' : 'Save changes' }}
+        </button>
+
+        <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="saving">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My facilities</h2>
+      <p class="hint">
+        Newly created facilities must be approved by admin.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadFacilities()" [disabled]="loading">
+      Refresh
+    </button>
+  </div>
+
+  @if (loading) {
+    <p>Loading facilities...</p>
+  } @else if (facilities.length === 0) {
+    <p class="hint">You have no facilities.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>City</th>
+          <th>Address</th>
+          <th>Price/h</th>
+          <th>Working time</th>
+          <th>No-shows</th>
+          <th>Status</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (facility of facilities; track facility.id) {
+          <tr>
+            <td>
+              <strong>{{ facility.name }}</strong>
+              <br />
+              <span class="description">{{ facility.description }}</span>
+            </td>
+            <td>{{ facility.city }}</td>
+            <td>{{ facility.address }}</td>
+            <td>{{ facility.pricePerHour }}</td>
+            <td>{{ facility.workingTimeFrom }} - {{ facility.workingTimeTo }}</td>
+            <td>{{ facility.allowedNoShows }}</td>
+            <td>
+              <span
+                class="status"
+                [class.pending]="facility.status === 'PENDING'"
+                [class.approved]="facility.status === 'APPROVED'"
+                [class.rejected]="facility.status === 'REJECTED'"
+              >
+                {{ facility.status }}
+              </span>
+            </td>
+            <td>
+              <button type="button" class="edit" (click)="startEdit(facility)">
+                Edit
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

@@ -1,0 +1,11 @@
+export interface Equipment {
+    id: number;
+    facilityId: number;
+    sportId: number;
+    name: string;
+    imagePath: string | null;
+    price: number;
+    stock: number;
+    active: boolean;
+    createdAt: string;
+}

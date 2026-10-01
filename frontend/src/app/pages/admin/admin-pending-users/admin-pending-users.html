@@ -1,0 +1,88 @@
+<a routerLink="/admin" class="back-link">
+    ← Back to admin dashboard
+</a>
+
+<section class="card">
+    <div class="card">
+        <div>
+            <h1>Pending users</h1>
+            <p class="hint">
+                Approve or reject athlete and employee registration requests.
+            </p>
+        </div>
+
+        <button type="button" class="secondary" (click)="loadPendingUsers()" [disabled]="loading">
+            Refresh
+        </button>
+    </div>
+
+    @if(errorMessage) {
+        <div class="error">
+            {{ errorMessage }}
+        </div>
+    }
+
+    @if(successMessage) {
+        <div class="success">
+            {{ successMessage }}
+        </div>
+    }
+
+    @if(loading) {
+        <p>Loading pending users...</p>
+    } @else if(users.length === 0) {
+        <p class="hint">There are no pending users</p>
+    } @else {
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for(user of users; track user.id) {
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ fullName(user) }}</td>
+                        <td>
+                            <span class="role">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.phone || '-' }}</td>
+                        <td><span class="status">
+                                {{ user.status }}
+                            </span></td>
+                        <td class="actions">
+                            <button
+                                type="button"
+                                class="approve"
+                                (click)="approve(user)"
+                                [disabled]="processingUserId === user.id"
+                            >
+                                Approve
+                            </button>
+
+                            <button
+                                type="button"
+                                class="reject"
+                                (click)="reject(user)"
+                                [disabled]="processingUserId === user.id"
+                            >
+                                Reject
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>

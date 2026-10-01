@@ -1,0 +1,285 @@
+<a routerLink="/employee" class="back-link">
+  ← Back to employee dashboard
+</a>
+
+<section class="card">
+  <h1>Employee promotions</h1>
+
+  @if (errorMessage) {
+    <div class="error">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (successMessage) {
+    <div class="success">
+      {{ successMessage }}
+    </div>
+  }
+
+  <h2>Create promotion</h2>
+
+  <form class="promotion-form" (ngSubmit)="createPromotion()">
+    <div class="grid">
+      <label>
+        Facility
+        <select name="createFacilityId" [(ngModel)]="createForm.facilityId">
+          <option [ngValue]="null">Choose facility</option>
+
+          @for (facility of facilities; track facility.id) {
+            <option [ngValue]="facility.id">
+              {{ facility.name }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Sport
+        <select name="createSportId" [(ngModel)]="createForm.sportId">
+          <option [ngValue]="null">All sports</option>
+
+          @for (sport of sports; track sport.id) {
+            <option [ngValue]="sport.id">
+              {{ sport.name }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Name
+        <input
+          type="text"
+          name="createName"
+          [(ngModel)]="createForm.name"
+        />
+      </label>
+
+      <label>
+        Valid from
+        <input
+          type="date"
+          name="createValidFrom"
+          [(ngModel)]="createForm.validFrom"
+        />
+      </label>
+
+      <label>
+        Valid to
+        <input
+          type="date"
+          name="createValidTo"
+          [(ngModel)]="createForm.validTo"
+        />
+      </label>
+
+      <label>
+        Discount type
+        <select name="createDiscountType" [(ngModel)]="createForm.discountType">
+          @for (type of discountTypes; track type) {
+            <option [value]="type">
+              {{ type }}
+            </option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Discount value
+        <input
+          type="number"
+          name="createDiscountValue"
+          min="0"
+          [(ngModel)]="createForm.discountValue"
+        />
+      </label>
+
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          name="createActive"
+          [(ngModel)]="createForm.active"
+        />
+        Active
+      </label>
+    </div>
+
+    <button
+      type="submit"
+      class="create-button"
+      [class.ready]="isCreateFormValid()"
+      [disabled]="creating || !isCreateFormValid()"
+    >
+      {{ creating ? 'Creating...' : 'Create promotion' }}
+    </button>
+  </form>
+</section>
+
+@if (editing) {
+  <section class="card edit-card">
+    <h2>Edit promotion</h2>
+
+    <form class="promotion-form" (ngSubmit)="saveEdit()">
+      <div class="grid">
+        <label>
+          Facility
+          <select name="editFacilityId" [(ngModel)]="editForm.facilityId">
+            <option [ngValue]="null">Choose facility</option>
+
+            @for (facility of facilities; track facility.id) {
+              <option [ngValue]="facility.id">
+                {{ facility.name }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Sport
+          <select name="editSportId" [(ngModel)]="editForm.sportId">
+            <option [ngValue]="null">All sports</option>
+
+            @for (sport of sports; track sport.id) {
+              <option [ngValue]="sport.id">
+                {{ sport.name }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Name
+          <input
+            type="text"
+            name="editName"
+            [(ngModel)]="editForm.name"
+          />
+        </label>
+
+        <label>
+          Valid from
+          <input
+            type="date"
+            name="editValidFrom"
+            [(ngModel)]="editForm.validFrom"
+          />
+        </label>
+
+        <label>
+          Valid to
+          <input
+            type="date"
+            name="editValidTo"
+            [(ngModel)]="editForm.validTo"
+          />
+        </label>
+
+        <label>
+          Discount type
+          <select name="editDiscountType" [(ngModel)]="editForm.discountType">
+            @for (type of discountTypes; track type) {
+              <option [value]="type">
+                {{ type }}
+              </option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Discount value
+          <input
+            type="number"
+            name="editDiscountValue"
+            min="0"
+            [(ngModel)]="editForm.discountValue"
+          />
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            name="editActive"
+            [(ngModel)]="editForm.active"
+          />
+          Active
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button
+          type="submit"
+          class="save"
+          [disabled]="saving || !isEditFormValid()"
+        >
+          {{ saving ? 'Saving...' : 'Save changes' }}
+        </button>
+
+        <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="saving">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+<section class="card">
+  <div class="title-row">
+    <div>
+      <h2>My promotions</h2>
+      <p class="hint">
+        Promotions for facilities managed by you.
+      </p>
+    </div>
+
+    <button type="button" class="secondary" (click)="loadPromotions()" [disabled]="loading">
+      Refresh
+    </button>
+  </div>
+
+  @if (loading) {
+    <p>Loading promotions...</p>
+  } @else if (promotions.length === 0) {
+    <p class="hint">You have no promotions.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Facility</th>
+          <th>Sport</th>
+          <th>Validity</th>
+          <th>Discount</th>
+          <th>Active</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (promotion of promotions; track promotion.id) {
+          <tr>
+            <td>{{ promotion.name }}</td>
+            <td>{{ facilityName(promotion.facilityId) }}</td>
+            <td>{{ sportName(promotion.sportId) }}</td>
+            <td>{{ promotion.validFrom }} - {{ promotion.validTo }}</td>
+            <td>{{ promotion.discountType }} {{ promotion.discountValue }}</td>
+            <td>
+              <span
+                class="active-badge"
+                [class.active]="promotion.active"
+                [class.inactive]="!promotion.active"
+              >
+                {{ promotion.active ? 'YES' : 'NO' }}
+              </span>
+            </td>
+            <td>
+              <button type="button" class="edit" (click)="startEdit(promotion)">
+                Edit
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
